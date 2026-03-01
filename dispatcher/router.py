@@ -1,9 +1,8 @@
 from typing import Dict, List, Callable, Any, Optional, Union
 
-from ..types import Message, CallbackQuery
+from ..telegram_types import Message, CallbackQuery  # Zmienione
 from ..exceptions import SkipHandler
 from .context import Context
-
 
 class Router:
     def __init__(self, name: str = "main"):

@@ -3,11 +3,10 @@ import inspect
 from typing import Dict, List, Callable, Any, Optional, Union
 
 from ..client import TelegramClient
-from ..types import Update, Message, CallbackQuery
+from ..telegram_types import Update, Message, CallbackQuery  # Zmienione
 from ..fsm import MemoryStorage, FSMContext, State
 from .context import Context
 from .middleware import MiddlewareManager
-
 
 class Dispatcher:
     """

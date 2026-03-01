@@ -1,10 +1,10 @@
 from typing import Optional, Dict, Any, Union
 
-from ..types import Message, CallbackQuery, Update
+from ..telegram_types import Message, CallbackQuery, Update  # Zmienione
 from ..client import TelegramClient
 
-
 class Context:
+
     """Kontekst dla handlerów"""
 
     def __init__(self, client: TelegramClient, update: Update):
