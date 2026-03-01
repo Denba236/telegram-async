@@ -2,7 +2,7 @@ import asyncio
 from telegram_async import Bot, Dispatcher
 from telegram_async.filters import Command
 
-BOT_TOKEN = "8158576821:AAFX-ZQ0qIJMwshtBnwXUOGXmHAw888A04s"  # Zastąp swoim tokenem
+BOT_TOKEN = "TOKEN"  # Zastąp swoim tokenem
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
 
@@ -39,4 +39,5 @@ async def main():
         print("\nBot zatrzymany.")
 
 if __name__ == "__main__":
+
     asyncio.run(main())
