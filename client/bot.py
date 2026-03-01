@@ -1,5 +1,5 @@
 import re
-from telegram_async.client import TelegramClient
+from .base import TelegramClient
 
 
 class Bot(TelegramClient):
@@ -17,10 +17,10 @@ class Bot(TelegramClient):
         pattern = r'^\d+:[\w-]+$'
         return bool(re.match(pattern, token))
 
-    def __init__(self, token: str):
+    def __init__(self, token: str, **kwargs):
         if not self.validate_token(token):
             raise ValueError(
                 "Nieprawidłowy format tokena! "
                 "Token powinien wyglądać tak: 123456789:ABCdefGHIjklmNOPqrstUVWXYZ"
             )
-        super().__init__(token)
+        super().__init__(token, **kwargs)

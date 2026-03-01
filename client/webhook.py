@@ -7,7 +7,7 @@ import logging
 from typing import Optional, Callable, Dict, Any
 from aiohttp import web
 
-from ..types import Update
+from ..telegram_types import Update
 from ..exceptions import WebhookError
 
 logger = logging.getLogger(__name__)
@@ -134,7 +134,8 @@ class WebhookServer:
         if certificate:
             with open(certificate, 'rb') as f:
                 cert_data = f.read()
-            return await self.bot._request('setWebhook', data, {'certificate': ('cert.pem', cert_data, 'application/x-pem-file')})
+            files = {'certificate': ('cert.pem', cert_data, 'application/x-pem-file')}
+            return await self.bot._request('setWebhook', data, files)
 
         return await self.bot._request('setWebhook', data)
 

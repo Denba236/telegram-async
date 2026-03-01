@@ -2,8 +2,12 @@ import aiohttp
 import asyncio
 import json
 import logging
-from typing import Optional, Dict, Any
-from ..exceptions import handle_telegram_error, NetworkError, TimeoutError, RateLimitError, TelegramAPIError
+from typing import Optional, Dict, Any, Union, List
+
+from ..exceptions import (
+    handle_telegram_error, NetworkError, TimeoutError,
+    RateLimitError, TelegramAPIError
+)
 from .methods import TelegramMethods
 
 logger = logging.getLogger(__name__)
@@ -19,6 +23,13 @@ class TelegramClient(TelegramMethods):
             retry_delay: float = 1.0,
             timeout: float = 30.0
     ):
+        """
+        Args:
+            token: Token bota
+            retry_count: Liczba ponowień przy błędach
+            retry_delay: Bazowe opóźnienie między ponowieniami (exponential backoff)
+            timeout: Timeout dla zapytań w sekundach
+        """
         self.token = token
         self.base_url = f"https://api.telegram.org/bot{token}"
         self.file_url = f"https://api.telegram.org/file/bot{token}"
@@ -49,33 +60,60 @@ class TelegramClient(TelegramMethods):
             data: Dict[str, Any],
             files: Optional[Dict] = None
     ) -> Dict:
-        """Wykonuje zapytanie do API Telegram z automatycznym ponawianiem"""
+        """
+        Wykonuje zapytanie do API Telegram z automatycznym ponawianiem
+
+        Args:
+            method: Metoda API (np. 'sendMessage')
+            data: Dane zapytania
+            files: Pliki do wysłania (multipart/form-data)
+
+        Returns:
+            Odpowiedź z Telegram API
+        """
         self.stats['total_requests'] += 1
 
         for attempt in range(self.retry_count + 1):
             try:
                 return await self._make_request(method, data, files)
+
             except RateLimitError as e:
                 self.stats['rate_limited'] += 1
                 if attempt == self.retry_count:
+                    logger.error(f"Rate limit exceeded after {self.retry_count} retries")
                     raise
-                await asyncio.sleep(e.retry_after)
-                self.stats['retried_requests'] += 1
-            except NetworkError as e:
-                if attempt == self.retry_count:
-                    raise
-                wait_time = self.retry_delay * (2 ** attempt)
+
+                wait_time = e.retry_after
+                logger.warning(f"Rate limited. Waiting {wait_time}s (attempt {attempt + 1}/{self.retry_count})")
                 await asyncio.sleep(wait_time)
                 self.stats['retried_requests'] += 1
+
+            except NetworkError as e:
+                if attempt == self.retry_count:
+                    logger.error(f"Network error after {self.retry_count} retries: {e}")
+                    raise
+
+                wait_time = self.retry_delay * (2 ** attempt)
+                logger.warning(f"Network error: {e}. Retrying in {wait_time}s")
+                await asyncio.sleep(wait_time)
+                self.stats['retried_requests'] += 1
+
             except TelegramAPIError as e:
-                if e.code in [400, 401, 403, 404] or attempt == self.retry_count:
+                if e.code in [400, 401, 403, 404]:
+                    raise
+                if attempt == self.retry_count:
                     raise
                 await asyncio.sleep(self.retry_delay * (2 ** attempt))
                 self.stats['retried_requests'] += 1
 
         raise Exception(f"Failed after {self.retry_count} attempts")
 
-    async def _make_request(self, method: str, data: Dict, files: Optional[Dict] = None) -> Dict:
+    async def _make_request(
+            self,
+            method: str,
+            data: Dict[str, Any],
+            files: Optional[Dict] = None
+    ) -> Dict:
         """Wykonuje pojedyncze zapytanie"""
         session = await self._get_session()
         url = f"{self.base_url}/{method}"
@@ -86,18 +124,26 @@ class TelegramClient(TelegramMethods):
                 for key, value in data.items():
                     if value is not None:
                         form_data.add_field(key, str(value))
+
                 for field_name, file_data in files.items():
                     if isinstance(file_data, tuple):
                         filename, content, content_type = file_data
-                        form_data.add_field(field_name, content, filename=filename, content_type=content_type)
+                        form_data.add_field(
+                            field_name,
+                            content,
+                            filename=filename,
+                            content_type=content_type
+                        )
                     else:
                         form_data.add_field(field_name, file_data)
+
                 async with session.post(url, data=form_data) as resp:
                     return await self._handle_response(resp)
             else:
                 clean_data = {k: v for k, v in data.items() if v is not None}
                 async with session.post(url, json=clean_data) as resp:
                     return await self._handle_response(resp)
+
         except aiohttp.ClientError as e:
             self.stats['failed_requests'] += 1
             raise NetworkError(f"HTTP error: {e}")
