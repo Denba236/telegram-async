@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, Dict, List
 
-from .base import File
-from .message import Message
-
 
 @dataclass
 class User:
@@ -126,7 +123,7 @@ class Chat:
     bio: Optional[str] = None
     description: Optional[str] = None
     invite_link: Optional[str] = None
-    pinned_message: Optional['Message'] = None
+    pinned_message: Optional['Message'] = None  # Odwołanie do Message jako string
     permissions: Optional[ChatPermissions] = None
     slow_mode_delay: Optional[int] = None
     message_auto_delete_time: Optional[int] = None
@@ -138,6 +135,9 @@ class Chat:
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Chat':
+        # Import wewnątrz metody, aby uniknąć cyklicznego importu
+        from .message import Message
+
         return cls(
             id=data['id'],
             type=data['type'],
