@@ -8,55 +8,56 @@
 [![Type checked](https://img.shields.io/badge/types-mypy-brightgreen)](https://mypy-lang.org/)
 [![Tests](https://img.shields.io/badge/tests-pytest-yellow)](https://docs.pytest.org/)
 
-Asynchroniczna biblioteka kliencka API Telegrama napisana w Pythonie, wykorzystująca `aiohttp` do wydajnej komunikacji z serwerami Telegram.
+An asynchronous Telegram API client library for Python, using `aiohttp` for efficient communication with Telegram servers.
 
-## 👤 Autor
+## 👤 Author
 
 **Denys Ostrovskyi**
 - 📧 Email: [ostrovskyidenys30@gmail.com](mailto:ostrovskyidenys30@gmail.com)
 - 💬 Telegram: [@denbas9](https://t.me/denbas9)
 - 💼 GitHub: [@denys-ostrovskyi](https://github.com/Denba236)
 
-## 📋 Spis treści
+## 📋 Table of Contents
 
-- [Funkcjonalności](#-funkcjonalności)
-- [Wymagania](#-wymagania)
-- [Instalacja](#-instalacja)
-- [Szybki start](#-szybki-start)
-- [Przykłady użycia](#-przykłady-użycia)
-- [Zasady kodowania](#-zasady-kodowania)
-- [Dokumentacja API](#-dokumentacja-api)
-- [Benchmarki](#-benchmarki)
-- [Struktura projektu](#-struktura-projektu)
-- [Testowanie](#-testowanie)
-- [Wielojęzyczność](#-wielojęzyczność)
-- [Wkład w rozwój](#-wkład-w-rozwój)
-- [Licencja](#-licencja)
-- [Kontakt i wsparcie](#-kontakt-i-wsparcie)
+- [Features](#-features)
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Usage Examples](#-usage-examples)
+- [Coding Guidelines](#-coding-guidelines)
+- [API Documentation](#-api-documentation)
+- [Benchmarks](#-benchmarks)
+- [Project Structure](#-project-structure)
+- [Testing](#-testing)
+- [Multilingualism](#-multilingualism)
+- [Contribution](#-contribution)
+- [License](#-license)
+- [Contact and Support](#-contact-and-support)
 
-## ✨ Funkcjonalności
+## ✨ Features
 
-- ✅ **W pełni asynchroniczna** - wykorzystuje async/await dla maksymalnej wydajności
-- ✅ **Obsługa oficjalnego API Telegram** - pełna kompatybilność z Bot API
-- ✅ **Zarządzanie sesjami** - automatyczne odnawianie połączeń
-- ✅ **Obsługa webhooków** - łatwa konfiguracja odbierania aktualizacji
-- ✅ **Wysyłanie multimediów** - zdjęcia, wideo, dokumenty, audio
-- ✅ **Klawiatury inline i reply** - interaktywne wiadomości
-- ✅ **Rate limiting** - automatyczne dostosowanie do limitów API
-- ✅ **Pełne typowanie** - wsparcie dla IDE i type checkerów
-- ✅ **Obsługa błędów** - zaawansowany system retry i obsługi wyjątków
-- ✅ **Wielojęzyczność** - wsparcie dla różnych języków w odpowiedziach bota
-- ✅ **Middleware** - system przetwarzania zapytań
-- ✅ **Testy jednostkowe** - pokrycie kodu >90%
+- ✅ **Fully asynchronous** - uses async/await for maximum performance
+- ✅ **Official Telegram API support** - full compatibility with Bot API
+- ✅ **Session management** - automatic connection renewal
+- ✅ **Webhook support** - easy configuration for receiving updates
+- ✅ **Multimedia sending** - photos, videos, documents, audio
+- ✅ **Inline and reply keyboards** - interactive messages
+- ✅ **Rate limiting** - automatic adaptation to API limits
+- ✅ **Full typing** - support for IDEs and type checkers
+- ✅ **Error handling** - advanced retry system and exception handling
+- ✅ **Multilingualism** - support for different languages in bot responses
+- ✅ **Middleware** - request processing system
+- ✅ **Unit tests** - code coverage >90%
 
-## 🔧 Wymagania
+## 🔧 Requirements
 
-- Python 3.7 lub nowszy
+- Python 3.7 or later
 - aiohttp >= 3.8.0
-- Konto bota Telegram (token od [@BotFather](https://t.me/botfather))
+- Telegram bot account (token from [@BotFather](https://t.me/botfather))
 
-## 📦 Instalacja
+## 📦 Installation
 
-### Instalacja z PyPI
+### Installation from PyPI
 ```bash
 pip install telegram-async
+```
