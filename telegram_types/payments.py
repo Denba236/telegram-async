@@ -7,7 +7,7 @@ from .base import TelegramObject
 
 @dataclass
 class LabeledPrice(TelegramObject):
-    """Cena z etykietą"""
+    """Labeled price"""
     label: str
     amount: int
 
@@ -21,7 +21,7 @@ class LabeledPrice(TelegramObject):
 
 @dataclass
 class Invoice(TelegramObject):
-    """Faktura"""
+    """Invoice"""
     title: str
     description: str
     start_parameter: str
@@ -41,7 +41,7 @@ class Invoice(TelegramObject):
 
 @dataclass
 class ShippingAddress(TelegramObject):
-    """Adres dostawy"""
+    """Shipping address"""
     country_code: str
     state: str
     city: str
@@ -63,7 +63,7 @@ class ShippingAddress(TelegramObject):
 
 @dataclass
 class OrderInfo(TelegramObject):
-    """Informacje o zamówieniu"""
+    """Order information"""
     name: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
@@ -85,7 +85,7 @@ class OrderInfo(TelegramObject):
 
 @dataclass
 class SuccessfulPayment(TelegramObject):
-    """Udana płatność"""
+    """Successful payment"""
     currency: str
     total_amount: int
     invoice_payload: str
@@ -113,7 +113,7 @@ class SuccessfulPayment(TelegramObject):
 
 @dataclass
 class ShippingOption(TelegramObject):
-    """Opcja dostawy"""
+    """Shipping option"""
     id: str
     title: str
     prices: List[LabeledPrice]
@@ -129,10 +129,10 @@ class ShippingOption(TelegramObject):
         )
 
 
-# Klasy dla callback-ów płatności
+# Payment callback classes
 @dataclass
 class PreCheckoutQuery(TelegramObject):
-    """Zapytanie przed finalizacją płatności"""
+    """Pre-checkout query"""
     id: str
     from_user: User
     currency: str
@@ -167,7 +167,7 @@ class PreCheckoutQuery(TelegramObject):
 
 @dataclass
 class ShippingQuery(TelegramObject):
-    """Zapytanie o dostawę"""
+    """Shipping query"""
     id: str
     from_user: User
     invoice_payload: str
@@ -192,10 +192,10 @@ class ShippingQuery(TelegramObject):
         )
 
 
-# Klasy odpowiedzi
+# Response classes
 @dataclass
 class AnswerPreCheckoutQuery:
-    """Odpowiedź na zapytanie przed finalizacją płatności"""
+    """Response to pre-checkout query"""
     ok: bool
     pre_checkout_query_id: str
     error_message: Optional[str] = None
@@ -212,7 +212,7 @@ class AnswerPreCheckoutQuery:
 
 @dataclass
 class AnswerShippingQuery:
-    """Odpowiedź na zapytanie o dostawę"""
+    """Response to shipping query"""
     ok: bool
     shipping_query_id: str
     shipping_options: Optional[List[ShippingOption]] = None

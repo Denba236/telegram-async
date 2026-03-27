@@ -1,15 +1,12 @@
 """
-System cachowania dla telegram_async
+Caching system for telegram_async
 """
 import time
 import asyncio
 import pickle
 import hashlib
-import json
 from typing import Any, Optional, Dict, List, Union, Callable
 from collections import OrderedDict
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 class TTLCache:
     """
-    Cache z TTL (Time To Live) i ograniczeniem rozmiaru
+    Cache with TTL (Time To Live) and size limitation
 
-    Przykład:
+    Example:
         cache = TTLCache(ttl=60, maxsize=100)
         cache.set("key", "value")
         value = cache.get("key")
@@ -28,8 +25,8 @@ class TTLCache:
     def __init__(self, ttl: int = 60, maxsize: int = 1000):
         """
         Args:
-            ttl: Czas życia wpisu w sekundach (None = bez TTL)
-            maxsize: Maksymalny rozmiar cache
+            ttl: Entry lifetime in seconds (None = no TTL)
+            maxsize: Maximum cache size
         """
         self.ttl = ttl
         self.maxsize = maxsize
@@ -41,14 +38,14 @@ class TTLCache:
 
     def get(self, key: Any, default: Any = None) -> Any:
         """
-        Pobiera wartość z cache
+        Retrieves a value from the cache
 
         Args:
-            key: Klucz
-            default: Wartość domyślna jeśli nie znaleziono
+            key: Key
+            default: Default value if not found
 
         Returns:
-            Wartość z cache lub default
+            Value from cache or default
         """
         if key not in self.cache:
             self.misses += 1
@@ -56,27 +53,27 @@ class TTLCache:
 
         value, timestamp = self.cache[key]
 
-        # Sprawdź TTL
+        # Check TTL
         if self.ttl and time.time() - timestamp > self.ttl:
             del self.cache[key]
             self.expired += 1
             self.misses += 1
             return default
 
-        # Przenieś na koniec (LRU)
+        # Move to end (LRU)
         self.cache.move_to_end(key)
         self.hits += 1
         return value
 
     def set(self, key: Any, value: Any):
         """
-        Zapisuje wartość w cache
+        Saves a value in the cache
 
         Args:
-            key: Klucz
-            value: Wartość
+            key: Key
+            value: Value
         """
-        # Usuń najstarsze jeśli przekroczono limit
+        # Remove oldest if limit exceeded
         if len(self.cache) >= self.maxsize:
             self.cache.popitem(last=False)
             self.evicted += 1
@@ -85,12 +82,12 @@ class TTLCache:
         self.cache.move_to_end(key)
 
     def delete(self, key: Any):
-        """Usuwa wpis z cache"""
+        """Removes an entry from the cache"""
         if key in self.cache:
             del self.cache[key]
 
     def clear(self):
-        """Czyści cache"""
+        """Clears the cache"""
         self.cache.clear()
         self.hits = 0
         self.misses = 0
@@ -98,7 +95,7 @@ class TTLCache:
         self.evicted = 0
 
     def get_all(self) -> Dict:
-        """Zwraca wszystkie ważne wpisy"""
+        """Returns all valid entries"""
         now = time.time()
         result = {}
         expired_keys = []
@@ -109,7 +106,7 @@ class TTLCache:
             else:
                 result[key] = value
 
-        # Usuń przeterminowane
+        # Remove expired
         for key in expired_keys:
             del self.cache[key]
             self.expired += 1
@@ -117,7 +114,7 @@ class TTLCache:
         return result
 
     def get_stats(self) -> Dict:
-        """Zwraca statystyki cache"""
+        """Returns cache statistics"""
         total = self.hits + self.misses
         return {
             'size': len(self.cache),
@@ -142,9 +139,9 @@ class TTLCache:
 
 class RedisCache:
     """
-    Cache w Redis (wymaga redis-py)
+    Redis cache (requires redis-py)
 
-    Przykład:
+    Example:
         import redis.asyncio as redis
         client = await redis.from_url("redis://localhost")
         cache = RedisCache(client, ttl=60)
@@ -162,11 +159,11 @@ class RedisCache:
     ):
         """
         Args:
-            redis_client: Klient Redis (aioredis lub redis.asyncio)
-            ttl: Domyślny TTL w sekundach
-            prefix: Prefiks dla kluczy
-            serializer: Funkcja serializująca (domyślnie pickle)
-            deserializer: Funkcja deserializująca (domyślnie pickle)
+            redis_client: Redis client (aioredis or redis.asyncio)
+            ttl: Default TTL in seconds
+            prefix: Prefix for keys
+            serializer: Serialization function (defaults to pickle)
+            deserializer: Deserialization function (defaults to pickle)
         """
         self.redis = redis_client
         self.ttl = ttl
@@ -177,17 +174,17 @@ class RedisCache:
         self.misses = 0
 
     def _make_key(self, key: Any) -> str:
-        """Tworzy klucz Redis z prefiksem"""
+        """Creates a Redis key with prefix"""
         if isinstance(key, (str, int, float)):
             key_str = str(key)
         else:
-            # Hash dla złożonych kluczy
+            # Hash for complex keys
             key_str = hashlib.md5(str(key).encode()).hexdigest()
         return f"{self.prefix}:{key_str}"
 
     async def get(self, key: Any, default: Any = None) -> Any:
         """
-        Pobiera wartość z cache
+        Retrieves a value from the cache
         """
         redis_key = self._make_key(key)
         data = await self.redis.get(redis_key)
@@ -208,7 +205,7 @@ class RedisCache:
 
     async def set(self, key: Any, value: Any, ttl: Optional[int] = None):
         """
-        Zapisuje wartość w cache
+        Saves a value in the cache
         """
         redis_key = self._make_key(key)
         ttl = ttl or self.ttl
@@ -223,12 +220,12 @@ class RedisCache:
             logger.error(f"Failed to serialize cache key {key}: {e}")
 
     async def delete(self, key: Any):
-        """Usuwa wpis z cache"""
+        """Removes an entry from the cache"""
         redis_key = self._make_key(key)
         await self.redis.delete(redis_key)
 
     async def clear(self):
-        """Czyści wszystkie wpisy z prefiksem"""
+        """Clears all entries with the prefix"""
         pattern = f"{self.prefix}:*"
         keys = await self.redis.keys(pattern)
         if keys:
@@ -237,7 +234,7 @@ class RedisCache:
         self.misses = 0
 
     async def get_stats(self) -> Dict:
-        """Zwraca statystyki"""
+        """Returns statistics"""
         pattern = f"{self.prefix}:*"
         keys = await self.redis.keys(pattern)
         total = self.hits + self.misses
@@ -250,15 +247,15 @@ class RedisCache:
         }
 
     async def close(self):
-        """Zamyka połączenie Redis"""
+        """Closes the Redis connection"""
         await self.redis.close()
 
 
 class UpdateCache:
     """
-    Specjalizowany cache dla aktualizacji Telegram
+    Specialized cache for Telegram updates
 
-    Przykład:
+    Example:
         update_cache = UpdateCache(ttl=60)
         if not update_cache.is_processed(update_id):
             await process_update(update)
@@ -268,37 +265,37 @@ class UpdateCache:
     def __init__(self, ttl: int = 60, maxsize: int = 10000):
         """
         Args:
-            ttl: Czas przechowywania update_id w sekundach
-            maxsize: Maksymalna liczba przechowywanych ID
+            ttl: Update ID storage time in seconds
+            maxsize: Maximum number of stored IDs
         """
         self.cache = TTLCache(ttl=ttl, maxsize=maxsize)
 
     def add(self, update_id: int):
-        """Dodaje update_id do cache"""
+        """Adds update_id to the cache"""
         self.cache.set(update_id, time.time())
 
     def is_processed(self, update_id: int) -> bool:
-        """Sprawdza czy update został już przetworzony"""
+        """Checks if the update has already been processed"""
         return update_id in self.cache
 
     def remove(self, update_id: int):
-        """Usuwa update_id z cache"""
+        """Removes update_id from the cache"""
         self.cache.delete(update_id)
 
     def clear(self):
-        """Czyści cache"""
+        """Clears the cache"""
         self.cache.clear()
 
     def get_stats(self) -> Dict:
-        """Zwraca statystyki cache"""
+        """Returns cache statistics"""
         return self.cache.get_stats()
 
 
 class FileCache:
     """
-    Cache plikowy (dla dużych danych)
+    File-based cache (for large data)
 
-    Przykład:
+    Example:
         cache = FileCache(cache_dir="./cache")
         await cache.set("key", large_data)
         data = await cache.get("key")
@@ -307,21 +304,21 @@ class FileCache:
     def __init__(self, cache_dir: str = "./cache", ttl: int = 3600):
         """
         Args:
-            cache_dir: Katalog na pliki cache
-            ttl: Domyślny TTL w sekundach
+            cache_dir: Directory for cache files
+            ttl: Default TTL in seconds
         """
         self.cache_dir = cache_dir
         self.ttl = ttl
         self._ensure_cache_dir()
-        self.memory_cache = TTLCache(ttl=60, maxsize=100)  # Mały cache w pamięci
+        self.memory_cache = TTLCache(ttl=60, maxsize=100)  # Small memory cache
 
     def _ensure_cache_dir(self):
-        """Tworzy katalog cache jeśli nie istnieje"""
+        """Creates the cache directory if it doesn't exist"""
         import os
         os.makedirs(self.cache_dir, exist_ok=True)
 
     def _get_path(self, key: Any) -> str:
-        """Zwraca ścieżkę do pliku cache"""
+        """Returns the path to a cache file"""
         import os
         if isinstance(key, (str, int, float)):
             key_str = str(key).replace('/', '_').replace('\\', '_')
@@ -331,13 +328,13 @@ class FileCache:
 
     async def get(self, key: Any, default: Any = None) -> Any:
         """
-        Pobiera wartość z cache plikowego
+        Retrieves a value from the file cache
         """
         import os
         import aiofiles
         import pickle
 
-        # Sprawdź cache w pamięci
+        # Check memory cache
         mem_value = self.memory_cache.get(key)
         if mem_value is not None:
             return mem_value
@@ -348,7 +345,7 @@ class FileCache:
             if not os.path.exists(path):
                 return default
 
-            # Sprawdź TTL
+            # Check TTL
             mtime = os.path.getmtime(path)
             if self.ttl and time.time() - mtime > self.ttl:
                 os.unlink(path)
@@ -358,7 +355,7 @@ class FileCache:
                 data = await f.read()
                 value = pickle.loads(data)
 
-                # Zapisz w cache pamięci
+                # Save in memory cache
                 self.memory_cache.set(key, value)
                 return value
 
@@ -368,7 +365,7 @@ class FileCache:
 
     async def set(self, key: Any, value: Any, ttl: Optional[int] = None):
         """
-        Zapisuje wartość do cache plikowego
+        Saves a value to the file cache
         """
         import aiofiles
         import pickle
@@ -380,14 +377,14 @@ class FileCache:
             async with aiofiles.open(path, 'wb') as f:
                 await f.write(data)
 
-            # Zapisz w cache pamięci
+            # Save in memory cache
             self.memory_cache.set(key, value)
 
         except Exception as e:
             logger.error(f"Failed to write cache file {path}: {e}")
 
     async def delete(self, key: Any):
-        """Usuwa wpis z cache"""
+        """Removes an entry from the cache"""
         import os
         path = self._get_path(key)
         self.memory_cache.delete(key)
@@ -399,7 +396,7 @@ class FileCache:
             logger.error(f"Failed to delete cache file {path}: {e}")
 
     async def clear(self):
-        """Czyści cały cache plikowy"""
+        """Clears the entire file cache"""
         import os
         import glob
 
@@ -413,7 +410,7 @@ class FileCache:
             logger.error(f"Failed to clear cache directory: {e}")
 
     async def get_stats(self) -> Dict:
-        """Zwraca statystyki cache"""
+        """Returns cache statistics"""
         import os
         import glob
 
@@ -432,16 +429,16 @@ class FileCache:
         }
 
 
-# Dekorator do cachowania wyników funkcji
+# Decorator for caching function results
 def cached(cache: Union[TTLCache, RedisCache, FileCache], key_func: Optional[Callable] = None):
     """
-    Dekorator cachujący wyniki funkcji
+    Decorator for caching function results
 
     Args:
-        cache: Instancja cache
-        key_func: Funkcja generująca klucz cache
+        cache: Cache instance
+        key_func: Cache key generation function
 
-    Przykład:
+    Example:
         cache = TTLCache(ttl=60)
 
         @cached(cache)
@@ -451,23 +448,26 @@ def cached(cache: Union[TTLCache, RedisCache, FileCache], key_func: Optional[Cal
 
     def decorator(func):
         async def wrapper(*args, **kwargs):
-            # Generuj klucz cache
+            # Generate cache key
             if key_func:
                 cache_key = key_func(*args, **kwargs)
             else:
-                # Domyślny klucz z argumentów
+                # Default key from arguments
                 cache_key = f"{func.__name__}:{args}:{kwargs}"
 
-            # Próba pobrania z cache
+            # Try to get from cache
             result = await cache.get(cache_key)
             if result is not None:
                 return result
 
-            # Wykonaj funkcję
+            # Execute function
             result = await func(*args, **kwargs)
 
-            # Zapisz w cache
-            await cache.set(cache_key, result)
+            # Save in cache
+            if asyncio.iscoroutine(cache.set(cache_key, result)):
+                await cache.set(cache_key, result)
+            else:
+                cache.set(cache_key, result)
 
             return result
 

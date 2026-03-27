@@ -5,10 +5,10 @@ import json
 
 @dataclass
 class TelegramObject:
-    """Klasa bazowa dla wszystkich obiektów Telegram API"""
+    """Base class for all Telegram API objects"""
 
     def to_dict(self) -> Dict[str, Any]:
-        """Konwertuje obiekt do słownika"""
+        """Converts object to dictionary"""
         result = {}
         for key, value in self.__dict__.items():
             if value is not None:
@@ -24,18 +24,18 @@ class TelegramObject:
         return result
 
     def to_json(self) -> str:
-        """Konwertuje obiekt do JSON"""
+        """Converts object to JSON string"""
         return json.dumps(self.to_dict(), ensure_ascii=False)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'TelegramObject':
-        """Tworzy obiekt ze słownika"""
+        """Creates an object from a dictionary"""
         return cls(**data)
 
 
 @dataclass
-class File(TelegramObject):  # Teraz File dziedziczy po TelegramObject
-    """Bazowa klasa dla plików"""
+class File(TelegramObject):
+    """Base class for files"""
     file_id: str
     file_unique_id: str
     file_size: Optional[int] = None

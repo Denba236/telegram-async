@@ -6,7 +6,7 @@ from .user import User
 
 @dataclass
 class PollAnswer:
-    """Odpowiedź na ankietę"""
+    """Poll answer"""
     poll_id: str
     user: User
     option_ids: List[int]

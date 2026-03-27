@@ -5,9 +5,9 @@ import sys
 from typing import Optional
 
 
-# Konfiguracja kolorów dla różnych poziomów logowania
+# Color configuration for different logging levels
 class ColoredFormatter(logging.Formatter):
-    """Formatter z kolorami dla konsoli"""
+    """Formatter with console colors"""
 
     grey = "\x1b[38;20m"
     blue = "\x1b[34;20m"
@@ -34,15 +34,15 @@ def setup_logger(name: str = "telegram_async",
                  level: Optional[int] = None,
                  log_file: Optional[str] = None) -> logging.Logger:
     """
-    Konfiguruje logger dla biblioteki
+    Configures the logger for the library
 
     Args:
-        name: Nazwa loggera
-        level: Poziom logowania (domyślnie INFO)
-        log_file: Ścieżka do pliku logów (opcjonalnie)
+        name: Logger name
+        level: Logging level (defaults to INFO)
+        log_file: Path to log file (optional)
 
     Returns:
-        skonfigurowany logger
+        Configured logger
     """
     if level is None:
         level = logging.INFO
@@ -50,24 +50,24 @@ def setup_logger(name: str = "telegram_async",
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
-    # Usuń istniejące handlery
+    # Remove existing handlers
     logger.handlers.clear()
 
-    # Handler konsoli z kolorami
+    # Console handler with colors
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
 
-    # Format dla konsoli (z kolorami)
+    # Console format (with colors)
     console_format = ColoredFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     console_handler.setFormatter(console_format)
     logger.addHandler(console_handler)
 
-    # Opcjonalny handler plikowy
+    # Optional file handler
     if log_file:
         file_handler = logging.FileHandler(log_file, encoding='utf-8')
         file_handler.setLevel(level)
 
-        # Format dla pliku (bez kolorów)
+        # File format (without colors)
         file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(file_format)
         logger.addHandler(file_handler)
@@ -75,26 +75,26 @@ def setup_logger(name: str = "telegram_async",
     return logger
 
 
-# Domyślny logger dla biblioteki
+# Default logger for the library
 logger = setup_logger()
 
 
 def get_logger(name: str) -> logging.Logger:
     """
-    Pobiera logger dla konkretnego modułu
+    Gets the logger for a specific module
 
     Args:
-        name: Nazwa modułu (zwykle __name__)
+        name: Module name (usually __name__)
 
     Returns:
-        logger dla modułu
+        Logger for the module
     """
     return logging.getLogger(f"telegram_async.{name}")
 
 
-# Klasa do logowania z kontekstem
+# Context logger class
 class ContextLogger:
-    """Logger z dodatkowym kontekstem"""
+    """Logger with additional context"""
 
     def __init__(self, logger: logging.Logger, **context):
         self.logger = logger
@@ -122,14 +122,14 @@ class ContextLogger:
         self._log(logging.CRITICAL, msg, *args, **kwargs)
 
 
-# Funkcje pomocnicze
+# Helper functions
 def log_deprecation(message: str):
-    """Loguje ostrzeżenie o przestarzałej funkcji"""
+    """Logs a deprecation warning"""
     logger.warning(f"DEPRECATION WARNING: {message}")
 
 
 def log_api_call(method: str, url: str, params: Optional[dict] = None):
-    """Loguje wywołanie API"""
+    """Logs an API call"""
     if params:
         logger.debug(f"API {method} {url} - Params: {params}")
     else:
@@ -137,5 +137,5 @@ def log_api_call(method: str, url: str, params: Optional[dict] = None):
 
 
 def log_api_response(method: str, url: str, status: int, time_ms: float):
-    """Loguje odpowiedź API"""
+    """Logs an API response"""
     logger.debug(f"API {method} {url} - Status: {status} - Time: {time_ms:.2f}ms")

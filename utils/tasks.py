@@ -7,15 +7,15 @@ logger = logging.getLogger(__name__)
 
 class Scheduler:
     """
-    Prosty scheduler do okresowego wykonywania zadań
+    Simple scheduler for periodic task execution
 
-    Przykład:
+    Example:
         scheduler = Scheduler()
 
         async def my_task():
             print("Task executed")
 
-        scheduler.every(60, my_task)  # Co 60 sekund
+        scheduler.every(60, my_task)  # Every 60 seconds
         await scheduler.start()
     """
 
@@ -25,13 +25,13 @@ class Scheduler:
 
     def every(self, seconds: int, func: Callable, *args, **kwargs):
         """
-        Dodaje zadanie wykonywane okresowo
+        Adds a periodically executed task
 
         Args:
-            seconds: Interwał w sekundach
-            func: Funkcja do wykonania
-            *args: Argumenty pozycyjne dla funkcji
-            **kwargs: Argumenty nazwane dla funkcji
+            seconds: Interval in seconds
+            func: Function to execute
+            *args: Positional arguments for the function
+            **kwargs: Keyword arguments for the function
         """
 
         async def wrapper():
@@ -50,15 +50,15 @@ class Scheduler:
 
     def cron(self, cron_expr: str, func: Callable, *args, **kwargs):
         """
-        Dodaje zadanie wykonywane według wyrażenia cron
+        Adds a task executed based on a cron expression
 
-        Wymaga biblioteki 'croniter'
+        Requires 'croniter' library
 
         Args:
-            cron_expr: Wyrażenie cron (np. "0 * * * *" - co godzinę)
-            func: Funkcja do wykonania
-            *args: Argumenty pozycyjne
-            **kwargs: Argumenty nazwane
+            cron_expr: Cron expression (e.g. "0 * * * *" - every hour)
+            func: Function to execute
+            *args: Positional arguments
+            **kwargs: Keyword arguments
         """
         try:
             from croniter import croniter
@@ -68,10 +68,10 @@ class Scheduler:
 
         async def wrapper():
             base = datetime.now()
-            iter = croniter(cron_expr, base)
+            it = croniter(cron_expr, base)
 
             while self._running:
-                next_time = iter.get_next(datetime)
+                next_time = it.get_next(datetime)
                 wait_seconds = (next_time - datetime.now()).total_seconds()
 
                 if wait_seconds > 0:
@@ -89,14 +89,14 @@ class Scheduler:
         return self
 
     async def start(self):
-        """Uruchamia wszystkie zadania"""
+        """Starts all tasks"""
         self._running = True
         await asyncio.gather(*(task() for task in self.tasks))
 
     def stop(self):
-        """Zatrzymuje wszystkie zadania"""
+        """Stops all tasks"""
         self._running = False
 
     def clear(self):
-        """Czyści wszystkie zadania"""
+        """Clears all tasks"""
         self.tasks.clear()

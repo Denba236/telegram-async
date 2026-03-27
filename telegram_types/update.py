@@ -12,7 +12,7 @@ from .poll_answer import PollAnswer
 
 @dataclass
 class Update:
-    """Aktualizacja z Telegram API"""
+    """Update from Telegram API"""
     update_id: int
     message: Optional[Message] = None
     edited_message: Optional[Message] = None

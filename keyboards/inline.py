@@ -51,11 +51,11 @@ class InlineKeyboardMarkup:
 
     @classmethod
     def row(cls, *buttons: InlineKeyboardButton) -> 'InlineKeyboardMarkup':
-        """Tworzy klawiaturę z jednym wierszem"""
+        """Creates a keyboard with a single row"""
         return cls([list(buttons)])
 
     def add(self, *buttons: InlineKeyboardButton) -> 'InlineKeyboardMarkup':
-        """Dodaje nowy wiersz z przyciskami"""
+        """Adds a new row with buttons"""
         self.inline_keyboard.append(list(buttons))
         return self
 

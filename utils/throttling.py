@@ -1,27 +1,27 @@
 """
-System throttlingu (ograniczania częstotliwości) dla telegram_async
+Throttling system (rate limiting) for telegram_async
 """
 import time
 import asyncio
+import logging
 from typing import Dict, Optional, Callable, Any, Union
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class ThrottleStrategy(Enum):
-    """Strategie throttlingu"""
-    WAIT = "wait"  # Czekaj na zwolnienie limitu
-    DROP = "drop"  # Odrzuć zapytanie
-    QUEUE = "queue"  # Kolejkuj zapytania
+    """Throttling strategies"""
+    WAIT = "wait"  # Wait for the limit to reset
+    DROP = "drop"  # Drop the request
+    QUEUE = "queue"  # Queue the requests
 
 
 @dataclass
 class ThrottleInfo:
-    """Informacje o throttlingu dla klucza"""
+    """Throttling information for a key"""
     timestamps: deque = field(default_factory=lambda: deque(maxlen=100))
     blocked_until: float = 0
     queue: deque = field(default_factory=deque)
@@ -32,9 +32,9 @@ class ThrottleInfo:
 
 class ThrottlingManager:
     """
-    Zaawansowany menedżer throttlingu
+    Advanced throttling manager
 
-    Przykład:
+    Example:
         throttle = ThrottlingManager(rate=5, per=10)
 
         @dp.message()
@@ -42,7 +42,7 @@ class ThrottlingManager:
             if await throttle.check_user(ctx.user_id):
                 await process_message(ctx)
             else:
-                await ctx.answer("Za dużo zapytań!")
+                await ctx.answer("Too many requests!")
     """
 
     def __init__(
@@ -54,25 +54,25 @@ class ThrottlingManager:
     ):
         """
         Args:
-            default_rate: Domyślna maksymalna liczba zapytań
-            default_per: Domyślny okres w sekundach
-            default_strategy: Domyślna strategia throttlingu
-            queue_size: Maksymalny rozmiar kolejki dla strategii QUEUE
+            default_rate: Default maximum number of requests
+            default_per: Default period in seconds
+            default_strategy: Default throttling strategy
+            queue_size: Maximum queue size for QUEUE strategy
         """
         self.default_rate = default_rate
         self.default_per = default_per
         self.default_strategy = default_strategy
         self.queue_size = queue_size
 
-        # Przechowuje dane dla różnych typów kluczy
+        # Stores data for different key types
         self.users: Dict[int, ThrottleInfo] = defaultdict(ThrottleInfo)
         self.chats: Dict[int, ThrottleInfo] = defaultdict(ThrottleInfo)
         self.global_info = ThrottleInfo()
 
-        # Niestandardowe klucze
+        # Custom keys
         self.custom: Dict[str, ThrottleInfo] = defaultdict(ThrottleInfo)
 
-        # Konfiguracje dla konkretnych kluczy
+        # Configurations for specific keys
         self.configs: Dict[str, Dict] = {}
 
     def configure(
@@ -82,7 +82,7 @@ class ThrottlingManager:
             per: Optional[int] = None,
             strategy: Optional[ThrottleStrategy] = None
     ):
-        """Konfiguruje throttling dla konkretnego klucza"""
+        """Configures throttling for a specific key"""
         self.configs[key] = {
             'rate': rate or self.default_rate,
             'per': per or self.default_per,
@@ -91,7 +91,7 @@ class ThrottlingManager:
 
     async def check(
             self,
-            key: str,
+            key: Union[str, int],
             key_type: str = "user",
             rate: Optional[int] = None,
             per: Optional[int] = None,
@@ -99,20 +99,20 @@ class ThrottlingManager:
             callback: Optional[Callable] = None
     ) -> bool:
         """
-        Sprawdza czy akcja może być wykonana
+        Checks if the action can be performed
 
         Args:
-            key: Klucz (np. user_id, chat_id)
-            key_type: Typ klucza ('user', 'chat', 'global', lub nazwa własna)
-            rate: Maksymalna liczba zapytań (override)
-            per: Okres w sekundach (override)
-            strategy: Strategia throttlingu (override)
-            callback: Funkcja wywoływana przy odrzuceniu
+            key: Key (e.g. user_id, chat_id)
+            key_type: Key type ('user', 'chat', 'global', or custom name)
+            rate: Maximum number of requests (override)
+            per: Period in seconds (override)
+            strategy: Throttling strategy (override)
+            callback: Function called when the request is rejected
 
         Returns:
-            True jeśli akcja może być wykonana
+            True if the action can be performed
         """
-        # Pobierz konfigurację
+        # Get configuration
         config_key = f"{key_type}:{key}" if key_type not in ['user', 'chat', 'global'] else key_type
         config = self.configs.get(config_key, {})
 
@@ -120,7 +120,7 @@ class ThrottlingManager:
         per = per or config.get('per') or self.default_per
         strategy = strategy or config.get('strategy') or self.default_strategy
 
-        # Pobierz info dla klucza
+        # Get info for the key
         if key_type == "user":
             info = self.users[int(key)]
         elif key_type == "chat":
@@ -133,25 +133,25 @@ class ThrottlingManager:
         info.total_requests += 1
         now = time.time()
 
-        # Sprawdź blokadę
+        # Check block
         if info.blocked_until > now:
             info.dropped_requests += 1
             if callback:
                 await callback(key, info.blocked_until - now)
             return False
 
-        # Wyczyść stare timestampy
+        # Clear old timestamps
         while info.timestamps and now - info.timestamps[0] > per:
             info.timestamps.popleft()
 
-        # Sprawdź limit
+        # Check limit
         if len(info.timestamps) < rate:
             info.timestamps.append(now)
             return True
 
-        # Przekroczono limit
+        # Limit exceeded
         if strategy == ThrottleStrategy.WAIT:
-            # Czekaj na zwolnienie limitu
+            # Wait for the limit to release
             wait_time = info.timestamps[0] + per - now
             if wait_time > 0:
                 logger.debug(f"Throttling: waiting {wait_time:.2f}s for {key_type}:{key}")
@@ -159,13 +159,13 @@ class ThrottlingManager:
                 return await self.check(key, key_type, rate, per, strategy, callback)
 
         elif strategy == ThrottleStrategy.QUEUE:
-            # Kolejkuj zapytanie
+            # Queue the request
             if len(info.queue) < self.queue_size:
                 info.queued_requests += 1
                 future = asyncio.Future()
                 info.queue.append((now, future))
 
-                # Przetwarzaj kolejkę
+                # Process the queue
                 if len(info.queue) == 1:
                     asyncio.create_task(self._process_queue(info, per))
 
@@ -176,26 +176,27 @@ class ThrottlingManager:
                     await callback(key, per)
                 return False
 
-        # DROP - odrzuć zapytanie
+        # DROP - reject the request
         info.dropped_requests += 1
         if callback:
             await callback(key, per)
         return False
 
     async def _process_queue(self, info: ThrottleInfo, per: int):
-        """Przetwarza kolejkę zapytań"""
+        """Processes the request queue"""
         while info.queue:
             timestamp, future = info.queue[0]
             now = time.time()
 
-            # Czekaj na odpowiedni moment
+            # Wait for the right moment
             wait_time = timestamp + per - now
             if wait_time > 0:
                 await asyncio.sleep(wait_time)
 
-            # Wykonaj zapytanie
+            # Execute request
             info.timestamps.append(now)
-            future.set_result(True)
+            if not future.done():
+                future.set_result(True)
             info.queue.popleft()
 
     async def check_user(
@@ -206,7 +207,7 @@ class ThrottlingManager:
             strategy: Optional[ThrottleStrategy] = None,
             callback: Optional[Callable] = None
     ) -> bool:
-        """Sprawdza limit dla użytkownika"""
+        """Checks limit for a user"""
         return await self.check(user_id, "user", rate, per, strategy, callback)
 
     async def check_chat(
@@ -217,7 +218,7 @@ class ThrottlingManager:
             strategy: Optional[ThrottleStrategy] = None,
             callback: Optional[Callable] = None
     ) -> bool:
-        """Sprawdza limit dla czatu"""
+        """Checks limit for a chat"""
         return await self.check(chat_id, "chat", rate, per, strategy, callback)
 
     async def check_global(
@@ -227,22 +228,22 @@ class ThrottlingManager:
             strategy: Optional[ThrottleStrategy] = None,
             callback: Optional[Callable] = None
     ) -> bool:
-        """Sprawdza globalny limit"""
+        """Checks global limit"""
         return await self.check("global", "global", rate, per, strategy, callback)
 
     def block_user(self, user_id: int, duration: float):
-        """Blokuje użytkownika na określony czas"""
+        """Blocks a user for a specified duration"""
         self.users[user_id].blocked_until = time.time() + duration
         logger.info(f"User {user_id} blocked for {duration}s")
 
     def unblock_user(self, user_id: int):
-        """Odblokowuje użytkownika"""
+        """Unblocks a user"""
         self.users[user_id].blocked_until = 0
         logger.info(f"User {user_id} unblocked")
 
-    def get_stats(self, key: Optional[str] = None, key_type: str = "user") -> Dict:
-        """Zwraca statystyki"""
-        if key and key_type:
+    def get_stats(self, key: Optional[Union[str, int]] = None, key_type: str = "user") -> Dict:
+        """Returns statistics"""
+        if key is not None:
             if key_type == "user":
                 info = self.users.get(int(key))
             elif key_type == "chat":
@@ -262,7 +263,7 @@ class ThrottlingManager:
                     'current_rate': len(info.timestamps)
                 }
         else:
-            # Statystyki zbiorcze
+            # Aggregate statistics
             return {
                 'total_users': len(self.users),
                 'total_chats': len(self.chats),
@@ -272,19 +273,19 @@ class ThrottlingManager:
         return {}
 
     def reset_user(self, user_id: int):
-        """Resetuje throttling dla użytkownika"""
+        """Resets throttling for a user"""
         if user_id in self.users:
             del self.users[user_id]
 
     def reset_all(self):
-        """Resetuje wszystkie throttlingi"""
+        """Resets all throttling data"""
         self.users.clear()
         self.chats.clear()
         self.custom.clear()
         self.global_info = ThrottleInfo()
 
 
-# Dekorator do throttlingu
+# Throttling decorator
 def throttle(
         rate: Optional[int] = None,
         per: Optional[int] = None,
@@ -293,17 +294,17 @@ def throttle(
         message: Optional[str] = None
 ):
     """
-    Dekorator do throttlingu handlerów
+    Decorator for handler throttling
 
     Args:
-        rate: Maksymalna liczba wywołań
-        per: Okres w sekundach
-        key_func: Funkcja zwracająca klucz do throttlingu
-        strategy: Strategia throttlingu
-        message: Wiadomość przy odrzuceniu
+        rate: Maximum number of calls
+        per: Period in seconds
+        key_func: Function returning the key for throttling
+        strategy: Throttling strategy
+        message: Message to send on rejection
 
-    Przykład:
-        @throttle(rate=3, per=1, message="Za szybko!")
+    Example:
+        @throttle(rate=3, per=1, message="Too fast!")
         @dp.message(Command("start"))
         async def start(ctx):
             await ctx.reply("Start")
@@ -312,7 +313,7 @@ def throttle(
 
     def decorator(func):
         async def wrapper(ctx, *args, **kwargs):
-            # Pobierz klucz
+            # Get key
             if key_func:
                 key = key_func(ctx)
             else:
@@ -321,7 +322,7 @@ def throttle(
             if not key:
                 return await func(ctx, *args, **kwargs)
 
-            # Callback przy odrzuceniu
+            # Rejection callback
             async def on_reject(key, wait_time):
                 if message:
                     if '{wait}' in message:
@@ -330,7 +331,7 @@ def throttle(
                         msg = message
                     await ctx.answer(msg)
 
-            # Sprawdź throttling
+            # Check throttling
             if await manager.check_user(
                     key,
                     rate=rate,
@@ -346,23 +347,23 @@ def throttle(
     return decorator
 
 
-# Middleware throttlingu
+# Throttling middleware
 class ThrottlingMiddleware:
-    """Middleware do throttlingu dla dispatchera"""
+    """Middleware for dispatcher throttling"""
 
     def __init__(
             self,
             manager: Optional[ThrottlingManager] = None,
             rate: int = 5,
             per: int = 10,
-            message: str = "⏳ Zbyt wiele zapytań. Spróbuj później."
+            message: str = "⏳ Too many requests. Please try again later."
     ):
         self.manager = manager or ThrottlingManager(rate, per)
         self.message = message
         self.logger = logging.getLogger(__name__)
 
     async def __call__(self, ctx, next_middleware):
-        # Pobierz user_id z kontekstu
+        # Get user_id from context
         user_id = ctx.user_id
 
         if user_id:

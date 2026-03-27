@@ -1,10 +1,10 @@
 import re
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 
-def parse_command(text: str) -> tuple[Optional[str], Optional[str]]:
+def parse_command(text: str) -> Tuple[Optional[str], Optional[str]]:
     """
-    Parsuje komendę z tekstu
+    Parses a command from text
     Returns: (command, args)
     """
     if not text or not text.startswith('/'):
@@ -14,7 +14,7 @@ def parse_command(text: str) -> tuple[Optional[str], Optional[str]]:
     command = parts[0].lower()
     args = parts[1] if len(parts) > 1 else None
 
-    # Usuń @username z komendy jeśli jest
+    # Remove @username from the command if it exists
     if '@' in command:
         command = command.split('@')[0]
 
@@ -23,7 +23,7 @@ def parse_command(text: str) -> tuple[Optional[str], Optional[str]]:
 
 def split_text(text: str, max_length: int = 4096) -> List[str]:
     """
-    Dzieli tekst na fragmenty nie dłuższe niż max_length
+    Splits text into fragments no longer than max_length
     """
     if len(text) <= max_length:
         return [text]
@@ -34,7 +34,7 @@ def split_text(text: str, max_length: int = 4096) -> List[str]:
             parts.append(text)
             break
 
-        # Znajdź miejsce podziału (ostatnia spacja)
+        # Find a split point (last space)
         split_at = text.rfind(' ', 0, max_length)
         if split_at == -1:
             split_at = max_length
@@ -47,7 +47,7 @@ def split_text(text: str, max_length: int = 4096) -> List[str]:
 
 def escape_markdown(text: str, version: int = 2) -> str:
     """
-    Escape'uje znaki specjalne Markdown
+    Escapes Markdown special characters
     """
     if version == 2:
         chars = r'_*[]()~`>#+-=|{}.!'
@@ -64,7 +64,7 @@ def build_menu(
         footer_buttons: Optional[List[str]] = None
 ) -> List[List[str]]:
     """
-    Buduje menu z listy przycisków
+    Builds a menu from a list of buttons
     """
     menu = []
 
@@ -82,7 +82,7 @@ def build_menu(
 
 def extract_entities(text: str, entities: List) -> dict:
     """
-    Wyodrębnia encje z tekstu (np. linki, mention)
+    Extracts entities from text (e.g. links, mentions)
     """
     result = {}
     for entity in entities:

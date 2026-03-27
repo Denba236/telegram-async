@@ -4,7 +4,7 @@ from typing import Optional, Dict
 
 @dataclass
 class WebAppData:
-    """Dane z Web App"""
+    """Web App data"""
     data: str
     button_text: str
 

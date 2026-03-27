@@ -1,24 +1,23 @@
 # middleware/base.py
 """
-System middleware dla telegram_async
+Middleware system for telegram_async
 """
-from typing import Callable, Dict, Any, Optional, Awaitable
+from typing import Callable, Dict, Any, Optional, Awaitable, List
 import logging
 import time
-from functools import wraps
-from ..types import Update
-from ..context import Context
+from ..telegram_types import Update
+from ..dispatcher.context import Context
 from ..exceptions import MiddlewareError, SkipHandler, CancelHandler
 
-# Typ dla handlera middleware
+# Type for middleware handler
 MiddlewareHandler = Callable[[Update, Dict[str, Any]], Awaitable[Any]]
 
 
 class BaseMiddleware:
     """
-    Bazowa klasa dla middleware
+    Base class for middleware
 
-    Przykład:
+    Example:
         class LoggingMiddleware(BaseMiddleware):
             async def __call__(self, handler, event, data):
                 logger.info(f"Processing update {event.update_id}")
@@ -37,15 +36,15 @@ class BaseMiddleware:
             data: Dict[str, Any]
     ) -> Any:
         """
-        Główna metoda middleware
+        Main middleware method
 
         Args:
-            handler: Następny handler/middleware do wywołania
-            event: Otrzymany update z Telegram
-            data: Słownik z danymi (bot, dispatcher, fsm, itp.)
+            handler: Next handler/middleware to call
+            event: Received update from Telegram
+            data: Dictionary with data (bot, dispatcher, fsm, etc.)
 
         Returns:
-            Wynik wykonania handlera
+            Result of the handler execution
         """
         return await handler(event, data)
 
@@ -55,22 +54,22 @@ class BaseMiddleware:
 
 class MiddlewareManager:
     """
-    Zarządca middleware - przechowuje i wykonuje middleware w łańcuchu
+    Middleware manager - stores and executes middleware in a chain
     """
 
     def __init__(self):
-        self.middlewares: list[BaseMiddleware] = []
+        self.middlewares: List[BaseMiddleware] = []
         self.logger = logging.getLogger(__name__)
 
     def add(self, middleware: BaseMiddleware):
-        """Dodaje middleware do kolekcji"""
+        """Adds middleware to the collection"""
         if not isinstance(middleware, BaseMiddleware):
             raise TypeError(f"Expected BaseMiddleware, got {type(middleware)}")
         self.middlewares.append(middleware)
         self.logger.debug(f"Added middleware: {middleware}")
 
     def remove(self, middleware_name: str) -> bool:
-        """Usuwa middleware po nazwie"""
+        """Removes middleware by name"""
         for i, m in enumerate(self.middlewares):
             if m.name == middleware_name:
                 self.middlewares.pop(i)
@@ -79,7 +78,7 @@ class MiddlewareManager:
         return False
 
     def clear(self):
-        """Czyści wszystkie middleware"""
+        """Clears all middlewares"""
         self.middlewares.clear()
         self.logger.debug("Cleared all middlewares")
 
@@ -90,15 +89,15 @@ class MiddlewareManager:
             final_handler: MiddlewareHandler
     ) -> Any:
         """
-        Uruchamia łańcuch middleware
+        Runs the middleware chain
 
         Args:
-            event: Update do przetworzenia
-            data: Dane kontekstowe
-            final_handler: Ostateczny handler do wywołania
+            event: Update to process
+            data: Contextual data
+            final_handler: Final handler to call
 
         Returns:
-            Wynik przetwarzania
+            Result of processing
         """
         index = 0
         middlewares = self.middlewares.copy()
@@ -111,11 +110,11 @@ class MiddlewareManager:
                 try:
                     return await current(next_middleware, event, data)
                 except SkipHandler:
-                    # Pomija bieżący handler, przechodzi do następnego
+                    # Skip current handler, go to next
                     self.logger.debug(f"Skipped handler in {current}")
                     return await next_middleware()
                 except CancelHandler:
-                    # Anuluje całe przetwarzanie
+                    # Cancel entire processing
                     self.logger.debug(f"Cancelled processing in {current}")
                     return None
                 except Exception as e:
@@ -126,10 +125,10 @@ class MiddlewareManager:
         return await next_middleware()
 
 
-# Konkretne implementacje middleware
+# Concrete middleware implementations
 
 class LoggingMiddleware(BaseMiddleware):
-    """Middleware do logowania update'ów"""
+    """Middleware for logging updates"""
 
     def __init__(self, logger: Optional[logging.Logger] = None):
         super().__init__("LoggingMiddleware")
@@ -151,13 +150,13 @@ class LoggingMiddleware(BaseMiddleware):
 
 
 class ThrottlingMiddleware(BaseMiddleware):
-    """Middleware do ograniczania częstotliwości zapytań"""
+    """Middleware for rate limiting requests"""
 
     def __init__(self, rate: int = 5, per: int = 10):
         """
         Args:
-            rate: Maksymalna liczba zapytań
-            per: W ciągu ilu sekund
+            rate: Maximum number of requests
+            per: Within how many seconds
         """
         super().__init__("ThrottlingMiddleware")
         self.rate = rate
@@ -166,7 +165,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         self.logger = logging.getLogger(__name__)
 
     async def __call__(self, handler, event, data):
-        # Pobierz user_id z eventu
+        # Get user_id from event
         user_id = None
         if event.message and event.message.from_user:
             user_id = event.message.from_user.id
@@ -178,11 +177,8 @@ class ThrottlingMiddleware(BaseMiddleware):
         if user_id:
             if not await self._check_rate_limit(user_id):
                 self.logger.warning(f"Rate limit exceeded for user {user_id}")
-                # Przekroczono limit - można wysłać powiadomienie
-                if event.message and event.message.chat:
-                    # Opcjonalnie: wyślij powiadomienie o limicie
-                    pass
-                return None  # Pomija dalsze przetwarzanie
+                # Limit exceeded - notification could be sent here
+                return None  # Skip further processing
 
         return await handler(event, data)
 
@@ -190,7 +186,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         now = time.time()
         user_data = self.users.get(user_id, [])
 
-        # Usuń stare wpisy
+        # Remove old entries
         user_data = [t for t in user_data if now - t < self.per]
 
         if len(user_data) >= self.rate:
@@ -203,18 +199,18 @@ class ThrottlingMiddleware(BaseMiddleware):
 
 
 class RoleMiddleware(BaseMiddleware):
-    """Middleware do sprawdzania ról użytkowników"""
+    """Middleware for checking user roles"""
 
     def __init__(self, role_manager):
         """
         Args:
-            role_manager: Manager ról (z roles.py)
+            role_manager: Role manager (from roles.py)
         """
         super().__init__("RoleMiddleware")
         self.role_manager = role_manager
 
     async def __call__(self, handler, event, data):
-        # Pobierz user_id
+        # Get user_id
         user_id = None
         if event.message and event.message.from_user:
             user_id = event.message.from_user.id
@@ -222,26 +218,26 @@ class RoleMiddleware(BaseMiddleware):
             user_id = event.callback_query.from_user.id
 
         if user_id:
-            # Dodaj rolę do danych
+            # Add role to data
             data['user_role'] = self.role_manager.get_role(user_id)
 
         return await handler(event, data)
 
 
 class FSMContextMiddleware(BaseMiddleware):
-    """Middleware do wstrzykiwania FSM context do danych"""
+    """Middleware for injecting FSM context into data"""
 
     def __init__(self):
         super().__init__("FSMContextMiddleware")
 
     async def __call__(self, handler, event, data):
-        # FSM context jest już dodawany w dispatcherze
-        # Ten middleware może rozszerzać funkcjonalność FSM
+        # FSM context is already added in the dispatcher
+        # This middleware can extend FSM functionality
         return await handler(event, data)
 
 
 class MetricsMiddleware(BaseMiddleware):
-    """Middleware do zbierania metryk"""
+    """Middleware for collecting metrics"""
 
     def __init__(self):
         super().__init__("MetricsMiddleware")
@@ -255,7 +251,7 @@ class MetricsMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
         self.metrics['total_updates'] += 1
 
-        # Zliczaj typy update'ów
+        # Count update types
         update_type = self._get_update_type(event)
         self.metrics['updates_by_type'][update_type] = \
             self.metrics['updates_by_type'].get(update_type, 0) + 1
@@ -265,7 +261,7 @@ class MetricsMiddleware(BaseMiddleware):
             result = await handler(event, data)
             processing_time = time.time() - start_time
             self.metrics['processing_times'].append(processing_time)
-            # Zachowaj tylko ostatnie 1000 czasów
+            # Keep only last 1000 times
             if len(self.metrics['processing_times']) > 1000:
                 self.metrics['processing_times'] = self.metrics['processing_times'][-1000:]
             return result
@@ -286,7 +282,7 @@ class MetricsMiddleware(BaseMiddleware):
             return 'other'
 
     def get_stats(self) -> Dict:
-        """Zwraca statystyki"""
+        """Returns statistics"""
         avg_time = sum(self.metrics['processing_times']) / len(self.metrics['processing_times']) \
             if self.metrics['processing_times'] else 0
         return {
@@ -298,7 +294,7 @@ class MetricsMiddleware(BaseMiddleware):
 
 
 class ErrorHandlingMiddleware(BaseMiddleware):
-    """Middleware do globalnej obsługi błędów"""
+    """Middleware for global error handling"""
 
     def __init__(self, error_handler: Optional[Callable] = None):
         super().__init__("ErrorHandlingMiddleware")
@@ -309,20 +305,20 @@ class ErrorHandlingMiddleware(BaseMiddleware):
             return await handler(event, data)
         except Exception as e:
             if self.error_handler:
-                # Przekaż błąd do handlera błędów
+                # Pass error to error handler
                 await self.error_handler(event, e, data)
             else:
-                # Domyślna obsługa - zaloguj błąd
+                # Default handling - log error
                 logging.error(f"Unhandled error in update {event.update_id}: {e}")
             raise
 
 
-# Dekorator do tworzenia middleware z funkcji
+# Decorator for creating middleware from a function
 def middleware(func: Callable) -> BaseMiddleware:
     """
-    Dekorator zamieniający funkcję w middleware
+    Decorator converting a function into middleware
 
-    Przykład:
+    Example:
         @middleware
         async def my_middleware(handler, event, data):
             print("Before handler")
@@ -332,9 +328,9 @@ def middleware(func: Callable) -> BaseMiddleware:
     """
 
     class FunctionMiddleware(BaseMiddleware):
-        def __init__(self, func):
-            super().__init__(func.__name__)
-            self.func = func
+        def __init__(self, f):
+            super().__init__(f.__name__)
+            self.func = f
 
         async def __call__(self, handler, event, data):
             return await self.func(handler, event, data)

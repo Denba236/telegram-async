@@ -5,18 +5,18 @@ from datetime import datetime
 
 @dataclass
 class MessageEntity:
-    """Encja w wiadomości (np. bold, italic, mention)"""
+    """Entity in a message (e.g., bold, italic, mention)"""
     type: str
     offset: int
     length: int
     url: Optional[str] = None
-    user: Optional['User'] = None  # Odwołanie jako string
+    user: Optional['User'] = None  # Reference as string
     language: Optional[str] = None
     custom_emoji_id: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'MessageEntity':
-        # Import wewnątrz metody
+        # Import inside method to avoid circular dependency
         from .user import User
 
         return cls(
@@ -32,7 +32,7 @@ class MessageEntity:
 
 @dataclass
 class MessageAutoDeleteTimerChanged:
-    """Zmiana timera auto-usuwania"""
+    """Message auto-delete timer change"""
     message_auto_delete_time: int
 
     @classmethod
@@ -44,10 +44,10 @@ class MessageAutoDeleteTimerChanged:
 
 @dataclass
 class Message:
-    """Obiekt reprezentujący wiadomość"""
+    """Object representing a message"""
     message_id: int
     date: datetime
-    chat: 'Chat'  # Odwołanie jako string
+    chat: 'Chat'  # Reference as string
     from_user: Optional['User'] = None
     sender_chat: Optional['Chat'] = None
     forward_from: Optional['User'] = None
@@ -83,7 +83,7 @@ class Message:
     venue: Optional['Venue'] = None
     location: Optional['Location'] = None
 
-    # Inne typy
+    # Other types
     new_chat_members: Optional[List['User']] = None
     left_chat_member: Optional['User'] = None
     new_chat_title: Optional[str] = None
@@ -110,7 +110,7 @@ class Message:
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Message':
-        # Importy wewnątrz metody
+        # Imports inside method to avoid circular dependency
         from .user import User, Chat
         from .media import PhotoSize, Animation, Audio, Document, Video, VideoNote, Voice, Sticker
         from .misc import Contact, Dice, Location, Venue, Poll, Game
@@ -163,7 +163,7 @@ class Message:
             venue=Venue.from_dict(data['venue']) if 'venue' in data else None,
             location=Location.from_dict(data['location']) if 'location' in data else None,
 
-            # Inne
+            # Other
             new_chat_members=[User.from_dict(u) for u in
                               data['new_chat_members']] if 'new_chat_members' in data else None,
             left_chat_member=User.from_dict(data['left_chat_member']) if 'left_chat_member' in data else None,

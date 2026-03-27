@@ -4,7 +4,7 @@ from typing import Optional, Dict, List
 
 @dataclass
 class User:
-    """Obiekt reprezentujący użytkownika Telegram"""
+    """Object representing a Telegram user"""
     id: int
     is_bot: bool
     first_name: str
@@ -32,7 +32,7 @@ class User:
 
 @dataclass
 class ChatPhoto:
-    """Zdjęcie czatu"""
+    """Chat photo"""
     small_file_id: str
     small_file_unique_id: str
     big_file_id: str
@@ -50,7 +50,7 @@ class ChatPhoto:
 
 @dataclass
 class ChatPermissions:
-    """Uprawnienia czatu"""
+    """Chat permissions"""
     can_send_messages: Optional[bool] = None
     can_send_media_messages: Optional[bool] = None
     can_send_polls: Optional[bool] = None
@@ -76,7 +76,7 @@ class ChatPermissions:
 
 @dataclass
 class Location:
-    """Lokalizacja"""
+    """Location"""
     longitude: float
     latitude: float
     horizontal_accuracy: Optional[float] = None
@@ -98,7 +98,7 @@ class Location:
 
 @dataclass
 class ChatLocation:
-    """Lokalizacja czatu"""
+    """Chat location"""
     location: Location
     address: str
 
@@ -112,7 +112,7 @@ class ChatLocation:
 
 @dataclass
 class Chat:
-    """Obiekt reprezentujący czat"""
+    """Object representing a chat"""
     id: int
     type: str  # 'private', 'group', 'supergroup', 'channel'
     title: Optional[str] = None
@@ -123,7 +123,7 @@ class Chat:
     bio: Optional[str] = None
     description: Optional[str] = None
     invite_link: Optional[str] = None
-    pinned_message: Optional['Message'] = None  # Odwołanie do Message jako string
+    pinned_message: Optional['Message'] = None  # Reference as string
     permissions: Optional[ChatPermissions] = None
     slow_mode_delay: Optional[int] = None
     message_auto_delete_time: Optional[int] = None
@@ -135,7 +135,7 @@ class Chat:
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Chat':
-        # Import wewnątrz metody, aby uniknąć cyklicznego importu
+        # Import inside method to avoid circular dependency
         from .message import Message
 
         return cls(

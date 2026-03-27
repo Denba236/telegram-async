@@ -2,7 +2,7 @@ from functools import wraps
 
 
 def role_required(role: str):
-    """Dekorator wymagający odpowiedniej roli"""
+    """Decorator requiring a specific role"""
     def decorator(func):
         func.__required_role__ = role
         return func
@@ -10,7 +10,7 @@ def role_required(role: str):
 
 
 def command(name: str):
-    """Dekorator dla komend"""
+    """Decorator for commands"""
     def decorator(func):
         func.__command__ = name
         return func
@@ -18,7 +18,7 @@ def command(name: str):
 
 
 def on_message(text_contains=None, from_user=None, chat_id=None):
-    """Dekorator dla wiadomości"""
+    """Decorator for messages"""
     def decorator(func):
         func.__on_message__ = True
         func.__filter__ = {

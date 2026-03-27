@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Union,List
+from typing import Optional, Dict, Any, Union, List
 import logging
 
 from .storage import Storage
@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 class FSMContext:
     """
-    Kontekst FSM dla konkretnego użytkownika
+    FSM Context for a specific user
 
-    Przykład:
+    Example:
         @dp.message(Command("start"))
         async def start(ctx):
             await ctx.fsm.set_state(OrderStates.name)
@@ -24,50 +24,50 @@ class FSMContext:
         self._data: Optional[Dict] = None
 
     async def set_state(self, state: Optional[Union[str, State]]):
-        """Ustawia stan użytkownika"""
+        """Sets the user's state"""
         await self.storage.set_state(self.user_id, state)
         logger.debug(f"User {self.user_id} state set to {state}")
 
     async def get_state(self) -> Optional[str]:
-        """Pobiera stan użytkownika jako string"""
+        """Gets the user's state as a string"""
         return await self.storage.get_state(self.user_id)
 
     async def get_state_obj(self) -> Optional[State]:
-        """Pobiera stan użytkownika jako obiekt State"""
+        """Gets the user's state as a State object"""
         state_str = await self.get_state()
         if not state_str:
             return None
         return await self.storage.resolve_state(state_str)
 
     async def set_data(self, data: Dict[str, Any]):
-        """Ustawia dane użytkownika"""
+        """Sets user data"""
         await self.storage.set_data(self.user_id, data)
         self._data = data.copy()
 
     async def get_data(self) -> Dict[str, Any]:
-        """Pobiera dane użytkownika"""
+        """Gets user data"""
         if self._data is None:
             self._data = await self.storage.get_data(self.user_id)
         return self._data.copy()
 
     async def update_data(self, **kwargs):
-        """Aktualizuje dane użytkownika"""
+        """Updates user data"""
         await self.storage.update_data(self.user_id, **kwargs)
         if self._data is not None:
             self._data.update(kwargs)
 
     async def clear(self):
-        """Czyści stan i dane użytkownika"""
+        """Clears the state and data for a user"""
         await self.storage.clear(self.user_id)
         self._data = None
         logger.debug(f"User {self.user_id} FSM cleared")
 
     async def set_callback_data(self, **kwargs):
-        """Zapisuje dane dla callback handlerów"""
+        """Saves data for callback handlers"""
         await self.update_data(callback_data=kwargs)
 
     async def get_callback_data(self, key: Optional[str] = None):
-        """Pobiera dane callback"""
+        """Retrieves callback data"""
         data = await self.get_data()
         callback_data = data.get('callback_data', {})
         if key:
@@ -75,7 +75,7 @@ class FSMContext:
         return callback_data
 
     async def is_state(self, state: Union[str, State]) -> bool:
-        """Sprawdza czy użytkownik jest w danym stanie"""
+        """Checks if the user is in a given state"""
         current = await self.get_state()
         if not current:
             return False
@@ -84,17 +84,17 @@ class FSMContext:
         return current == target
 
     async def finish(self):
-        """Kończy FSM (alias dla clear)"""
+        """Finishes the FSM (alias for clear)"""
         await self.clear()
 
 
-# Dekoratory dla FSM
+# FSM Decorators
 
 def on_state(state: Union[str, State, List[Union[str, State]]]):
     """
-    Dekorator dla handlerów reagujących na konkretny stan
+    Decorator for handlers responding to a specific state
 
-    Przykład:
+    Example:
         @on_state(OrderStates.name)
         async def process_name(ctx):
             name = ctx.message.text
@@ -106,7 +106,7 @@ def on_state(state: Union[str, State, List[Union[str, State]]]):
 
 
 def on_enter_state(state: Union[str, State]):
-    """Dekorator dla handlerów wywoływanych przy wejściu do stanu"""
+    """Decorator for handlers called when entering a state"""
 
     def decorator(func):
         func.__fsm_on_enter__ = str(state)
@@ -116,7 +116,7 @@ def on_enter_state(state: Union[str, State]):
 
 
 def on_exit_state(state: Union[str, State]):
-    """Dekorator dla handlerów wywoływanych przy wyjściu ze stanu"""
+    """Decorator for handlers called when exiting a state"""
 
     def decorator(func):
         func.__fsm_on_exit__ = str(state)

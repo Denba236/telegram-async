@@ -1,11 +1,10 @@
 from typing import Optional, Dict, Any, Union
 
-from ..telegram_types import Message, CallbackQuery, Update  # Zmienione
+from ..telegram_types import Message, CallbackQuery, Update
 from ..client import TelegramClient
 
 class Context:
-
-    """Kontekst dla handlerów"""
+    """Context object for handlers"""
 
     def __init__(self, client: TelegramClient, update: Update):
         self.client = client
@@ -13,8 +12,8 @@ class Context:
         self.message: Optional[Message] = update.message
         self.callback_query: Optional[CallbackQuery] = update.callback_query
         self.edited_message: Optional[Message] = update.edited_message
-        self.data: Dict[str, Any] = {}  # miejsce na dane użytkownika
-        self.fsm = None  # będzie ustawione przez dispatcher
+        self.data: Dict[str, Any] = {}  # space for custom user data
+        self.fsm = None  # will be injected by the dispatcher
 
     @property
     def chat_id(self) -> Optional[int]:
@@ -38,7 +37,7 @@ class Context:
 
     @property
     def text(self) -> Optional[str]:
-        """Zwraca tekst wiadomości"""
+        """Returns the text or caption of the message/edited message"""
         if self.message:
             return self.message.text or self.message.caption
         elif self.edited_message:
@@ -46,24 +45,21 @@ class Context:
         return None
 
     async def answer(self, text: str, **kwargs):
-        """
-        Odpowiada na wiadomość (alias dla reply)
-        Dodane dla kompatybilności z kodem który używa answer()
-        """
+        """Answers the message (alias for reply)"""
         return await self.reply(text, **kwargs)
 
     async def reply(self, text: str, **kwargs):
-        """Odpowiada na wiadomość"""
+        """Replies to the message"""
         if self.chat_id:
             return await self.client.send_message(self.chat_id, text, **kwargs)
         return None
 
     async def reply_text(self, text: str, **kwargs):
-        """Alias dla reply"""
+        """Alias for reply"""
         return await self.reply(text, **kwargs)
 
-    async def answer_callback(self, text: str = None, show_alert: bool = False):
-        """Odpowiada na callback query"""
+    async def answer_callback(self, text: Optional[str] = None, show_alert: bool = False):
+        """Answers a callback query"""
         if self.callback_query:
             return await self.client.answer_callback_query(
                 self.callback_query.id,
@@ -72,7 +68,7 @@ class Context:
             )
 
     async def edit_message(self, text: str, reply_markup: Optional[Dict] = None):
-        """Edytuje wiadomość"""
+        """Edits the text of a message"""
         if self.message:
             return await self.client.edit_message_text(
                 text,
@@ -97,7 +93,7 @@ class Context:
         return None
 
     async def delete_message(self):
-        """Usuwa wiadomość"""
+        """Deletes the current message"""
         if self.message:
             return await self.client.delete_message(
                 self.message.chat.id,

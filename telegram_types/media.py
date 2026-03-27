@@ -5,7 +5,7 @@ from .base import File
 
 
 class PhotoSize(File):
-    """Rozmiar zdjęcia"""
+    """Photo size"""
 
     def __init__(self, file_id: str, file_unique_id: str, width: int, height: int,
                  file_size: Optional[int] = None, file_path: Optional[str] = None):
@@ -26,7 +26,7 @@ class PhotoSize(File):
 
 
 class Animation(File):
-    """Animacja (GIF)"""
+    """Animation (GIF)"""
 
     def __init__(self, file_id: str, file_unique_id: str, width: int, height: int, duration: int,
                  thumb: Optional['PhotoSize'] = None, file_name: Optional[str] = None,
@@ -62,7 +62,7 @@ class Animation(File):
 
 
 class Audio(File):
-    """Plik audio"""
+    """Audio file"""
 
     def __init__(self, file_id: str, file_unique_id: str, duration: int,
                  performer: Optional[str] = None, title: Optional[str] = None,
@@ -99,7 +99,7 @@ class Audio(File):
 
 
 class Document(File):
-    """Dokument"""
+    """Document"""
 
     def __init__(self, file_id: str, file_unique_id: str,
                  file_name: Optional[str] = None, mime_type: Optional[str] = None,
@@ -129,7 +129,7 @@ class Document(File):
 
 
 class Video(File):
-    """Plik wideo"""
+    """Video file"""
 
     def __init__(self, file_id: str, file_unique_id: str, width: int, height: int, duration: int,
                  thumb: Optional['PhotoSize'] = None, file_name: Optional[str] = None,
@@ -165,7 +165,7 @@ class Video(File):
 
 
 class VideoNote(File):
-    """Okrągłe wideo"""
+    """Round video note"""
 
     def __init__(self, file_id: str, file_unique_id: str, length: int, duration: int,
                  thumb: Optional['PhotoSize'] = None, file_size: Optional[int] = None,
@@ -194,7 +194,7 @@ class VideoNote(File):
 
 
 class Voice(File):
-    """Wiadomość głosowa"""
+    """Voice message"""
 
     def __init__(self, file_id: str, file_unique_id: str, duration: int,
                  mime_type: Optional[str] = None, file_size: Optional[int] = None,
@@ -217,7 +217,7 @@ class Voice(File):
 
 @dataclass
 class MaskPosition:
-    """Pozycja maski na twarzy"""
+    """Position of a mask on a face"""
     point: str
     x_shift: float
     y_shift: float
@@ -234,7 +234,7 @@ class MaskPosition:
 
 
 class Sticker(File):
-    """Naklejka"""
+    """Sticker"""
 
     def __init__(self, file_id: str, file_unique_id: str, type: str, width: int, height: int,
                  is_animated: bool, is_video: bool, thumb: Optional['PhotoSize'] = None,

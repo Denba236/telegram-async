@@ -16,12 +16,12 @@ class CallbackRegistry:
                 return
 
 
-# Singleton do użytku w frameworku
+# Singleton for framework use
 callback_registry = CallbackRegistry()
 
 
 def on_callback(pattern: str):
-    """Dekorator dla callback query"""
+    """Decorator for callback query"""
     def wrapper(func):
         callback_registry.register(pattern, func)
         return func

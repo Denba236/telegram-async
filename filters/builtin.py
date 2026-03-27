@@ -3,10 +3,10 @@ from typing import Optional, List, Union
 
 def text(*texts: str):
     """
-    Filtr sprawdzający czy tekst wiadomości jest równy podanemu
+    Filter that checks if the message text is equal to one of the provided texts
 
-    Przykład:
-        @dp.message(text("tak", "nie"))
+    Example:
+        @dp.message(text("yes", "no"))
         async def handle_yes_no(ctx):
             pass
     """
@@ -21,10 +21,10 @@ def text(*texts: str):
 
 def text_contains(*substrings: str):
     """
-    Filtr sprawdzający czy tekst wiadomości zawiera podane podciągi
+    Filter that checks if the message text contains one of the provided substrings
 
-    Przykład:
-        @dp.message(text_contains("hello", "witaj"))
+    Example:
+        @dp.message(text_contains("hello", "hi"))
         async def handle_greeting(ctx):
             pass
     """
@@ -40,11 +40,11 @@ def text_contains(*substrings: str):
 
 def chat_type(*types: str):
     """
-    Filtr sprawdzający typ czatu
+    Filter that checks the chat type
 
-    Typy: 'private', 'group', 'supergroup', 'channel'
+    Types: 'private', 'group', 'supergroup', 'channel'
 
-    Przykład:
+    Example:
         @dp.message(chat_type("private"))
         async def private_only(ctx):
             pass
@@ -61,9 +61,9 @@ def chat_type(*types: str):
 
 def from_user_id(*user_ids: int):
     """
-    Filtr sprawdzający ID użytkownika
+    Filter that checks the user ID
 
-    Przykład:
+    Example:
         @dp.message(from_user_id(123456, 789012))
         async def specific_users(ctx):
             pass
@@ -80,9 +80,9 @@ def from_user_id(*user_ids: int):
 
 def chat_id(*chat_ids: int):
     """
-    Filtr sprawdzający ID czatu
+    Filter that checks the chat ID
 
-    Przykład:
+    Example:
         @dp.message(chat_id(-100123456))
         async def specific_chat(ctx):
             pass
@@ -99,7 +99,7 @@ def chat_id(*chat_ids: int):
 
 def reply_to_bot():
     """
-    Filtr sprawdzający czy wiadomość jest odpowiedzią na bota
+    Filter that checks if the message is a reply to the bot
     """
 
     async def filter_func(message):
@@ -113,7 +113,7 @@ def reply_to_bot():
 
 
 def forward():
-    """Filtr sprawdzający czy wiadomość jest forwardowana"""
+    """Filter that checks if the message is forwarded"""
 
     async def filter_func(message):
         return message.forward_from is not None or message.forward_from_chat is not None

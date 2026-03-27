@@ -1,5 +1,5 @@
 """
-Storage backends dla Finite State Machine (FSM)
+Storage backends for Finite State Machine (FSM)
 """
 from typing import Optional, Any, Dict, Union, Callable, Type
 import json
@@ -11,59 +11,59 @@ logger = logging.getLogger(__name__)
 
 
 class Storage:
-    """Bazowa klasa dla storage'ów"""
+    """Base class for storage backends"""
 
     async def set_state(self, user_id: int, state: Optional[Union[str, State]]):
         """
-        Ustawia stan dla użytkownika
+        Sets the state for a user
 
         Args:
-            user_id: ID użytkownika
-            state: Stan do ustawienia (None = brak stanu)
+            user_id: User ID
+            state: State to set (None = no state)
         """
         raise NotImplementedError
 
     async def get_state(self, user_id: int) -> Optional[str]:
         """
-        Pobiera stan użytkownika
+        Gets the user's state
 
         Args:
-            user_id: ID użytkownika
+            user_id: User ID
 
         Returns:
-            Aktualny stan jako string lub None
+            Current state as a string or None
         """
         raise NotImplementedError
 
     async def set_data(self, user_id: int, data: Dict[str, Any]):
         """
-        Ustawia dane dla użytkownika
+        Sets data for a user
 
         Args:
-            user_id: ID użytkownika
-            data: Dane do zapisania
+            user_id: User ID
+            data: Data to save
         """
         raise NotImplementedError
 
     async def get_data(self, user_id: int) -> Dict[str, Any]:
         """
-        Pobiera dane użytkownika
+        Gets user data
 
         Args:
-            user_id: ID użytkownika
+            user_id: User ID
 
         Returns:
-            Słownik z danymi użytkownika
+            Dictionary with user data
         """
         raise NotImplementedError
 
     async def update_data(self, user_id: int, **kwargs):
         """
-        Aktualizuje dane użytkownika
+        Updates user data
 
         Args:
-            user_id: ID użytkownika
-            **kwargs: Pary klucz-wartość do aktualizacji
+            user_id: User ID
+            **kwargs: Key-value pairs to update
         """
         data = await self.get_data(user_id)
         data.update(kwargs)
@@ -71,23 +71,23 @@ class Storage:
 
     async def clear(self, user_id: int):
         """
-        Czyści stan i dane użytkownika
+        Clears the state and data for a user
 
         Args:
-            user_id: ID użytkownika
+            user_id: User ID
         """
         raise NotImplementedError
 
     async def close(self):
-        """Zamyka połączenie ze storage'em"""
+        """Closes the connection to the storage"""
         pass
 
 
 class MemoryStorage(Storage):
     """
-    Storage w pamięci RAM
+    In-memory RAM storage
 
-    Przykład:
+    Example:
         storage = MemoryStorage()
         await storage.set_state(123456, "state_name")
         state = await storage.get_state(123456)
@@ -99,7 +99,7 @@ class MemoryStorage(Storage):
 
     async def set_state(self, user_id: int, state: Optional[Union[str, State]]):
         """
-        Ustawia stan dla użytkownika w pamięci
+        Sets the state for a user in memory
         """
         if user_id not in self.data:
             self.data[user_id] = {"state": None, "data": {}}
@@ -113,7 +113,7 @@ class MemoryStorage(Storage):
 
     async def get_state(self, user_id: int) -> Optional[str]:
         """
-        Pobiera stan użytkownika z pamięci
+        Gets the user's state from memory
         """
         state = self.data.get(user_id, {}).get("state")
         logger.debug(f"MemoryStorage: get_state for user {user_id} -> {state}")
@@ -121,21 +121,21 @@ class MemoryStorage(Storage):
 
     async def resolve_state(self, state_str: str) -> Optional[State]:
         """
-        Konwertuje string na obiekt State jeśli możliwe
+        Converts a string to a State object if possible
 
         Args:
-            state_str: String reprezentujący stan
+            state_str: String representing the state
 
         Returns:
-            Obiekt State lub None
+            State object or None
         """
-        # Sprawdź zarejestrowane resolvery
+        # Check registered resolvers
         for resolver in self._state_resolvers.values():
             state = resolver(state_str)
             if state:
                 return state
 
-        # Próbuj sparsować jako "Group:state"
+        # Try to parse as "Group:state"
         if ':' in state_str:
             group_name, state_name = state_str.split(':', 1)
             return State(state_name)
@@ -144,10 +144,10 @@ class MemoryStorage(Storage):
 
     def register_state_resolver(self, group: Type[StatesGroup]):
         """
-        Rejestruje resolver dla grupy stanów
+        Registers a resolver for a group of states
 
         Args:
-            group: Klasa StatesGroup
+            group: StatesGroup class
         """
 
         def resolver(state_str: str) -> Optional[State]:
@@ -161,7 +161,7 @@ class MemoryStorage(Storage):
 
     async def set_data(self, user_id: int, data: Dict[str, Any]):
         """
-        Ustawia dane dla użytkownika w pamięci
+        Sets data for a user in memory
         """
         if user_id not in self.data:
             self.data[user_id] = {"state": None, "data": {}}
@@ -170,7 +170,7 @@ class MemoryStorage(Storage):
 
     async def get_data(self, user_id: int) -> Dict[str, Any]:
         """
-        Pobiera dane użytkownika z pamięci
+        Gets user data from memory
         """
         data = self.data.get(user_id, {}).get("data", {}).copy()
         logger.debug(f"MemoryStorage: get_data for user {user_id} -> {len(data)} keys")
@@ -178,7 +178,7 @@ class MemoryStorage(Storage):
 
     async def update_data(self, user_id: int, **kwargs):
         """
-        Aktualizuje dane użytkownika w pamięci
+        Updates user data in memory
         """
         if user_id not in self.data:
             self.data[user_id] = {"state": None, "data": {}}
@@ -187,31 +187,31 @@ class MemoryStorage(Storage):
 
     async def clear(self, user_id: int):
         """
-        Czyści stan i dane użytkownika z pamięci
+        Clears the state and data for a user in memory
         """
         if user_id in self.data:
             self.data[user_id] = {"state": None, "data": {}}
             logger.debug(f"MemoryStorage: cleared data for user {user_id}")
 
     async def clear_all(self):
-        """Czyści wszystkie dane ze storage'u"""
+        """Clears all data from storage"""
         self.data.clear()
         logger.debug("MemoryStorage: cleared all data")
 
     def __contains__(self, user_id: int) -> bool:
-        """Sprawdza czy użytkownik istnieje w storage"""
+        """Checks if a user exists in storage"""
         return user_id in self.data
 
     def __len__(self) -> int:
-        """Zwraca liczbę użytkowników w storage"""
+        """Returns the number of users in storage"""
         return len(self.data)
 
 
 class RedisStorage(Storage):
     """
-    Storage w Redis (wymaga redis-py)
+    Redis storage (requires redis-py)
 
-    Przykład:
+    Example:
         import redis.asyncio as redis
         client = await redis.from_url("redis://localhost")
         storage = RedisStorage(client, prefix="my_bot")
@@ -222,8 +222,8 @@ class RedisStorage(Storage):
     def __init__(self, redis_client, prefix: str = "fsm"):
         """
         Args:
-            redis_client: Klient Redis (aioredis lub redis.asyncio)
-            prefix: Prefiks dla kluczy w Redis
+            redis_client: Redis client (aioredis or redis.asyncio)
+            prefix: Prefix for keys in Redis
         """
         self.redis = redis_client
         self.prefix = prefix
@@ -231,20 +231,20 @@ class RedisStorage(Storage):
 
     def _make_key(self, user_id: int, suffix: str) -> str:
         """
-        Tworzy klucz Redis dla użytkownika
+        Creates a Redis key for a user
 
         Args:
-            user_id: ID użytkownika
-            suffix: Sufiks (np. "state" lub "data")
+            user_id: User ID
+            suffix: Suffix (e.g. "state" or "data")
 
         Returns:
-            Pełny klucz Redis
+            Full Redis key
         """
         return f"{self.prefix}:{user_id}:{suffix}"
 
     async def set_state(self, user_id: int, state: Optional[Union[str, State]]):
         """
-        Ustawia stan dla użytkownika w Redis
+        Sets the state for a user in Redis
         """
         key = self._make_key(user_id, "state")
 
@@ -258,7 +258,7 @@ class RedisStorage(Storage):
 
     async def get_state(self, user_id: int) -> Optional[str]:
         """
-        Pobiera stan użytkownika z Redis
+        Gets the user's state from Redis
         """
         key = self._make_key(user_id, "state")
         state = await self.redis.get(key)
@@ -274,13 +274,13 @@ class RedisStorage(Storage):
 
     async def resolve_state(self, state_str: str) -> Optional[State]:
         """
-        Konwertuje string na obiekt State jeśli możliwe
+        Converts a string to a State object if possible
 
         Args:
-            state_str: String reprezentujący stan
+            state_str: String representing the state
 
         Returns:
-            Obiekt State lub None
+            State object or None
         """
         for resolver in self._state_resolvers.values():
             state = resolver(state_str)
@@ -290,10 +290,10 @@ class RedisStorage(Storage):
 
     def register_state_resolver(self, group: Type[StatesGroup]):
         """
-        Rejestruje resolver dla grupy stanów
+        Registers a resolver for a group of states
 
         Args:
-            group: Klasa StatesGroup
+            group: StatesGroup class
         """
 
         def resolver(state_str: str) -> Optional[State]:
@@ -307,7 +307,7 @@ class RedisStorage(Storage):
 
     async def set_data(self, user_id: int, data: Dict[str, Any]):
         """
-        Ustawia dane dla użytkownika w Redis
+        Sets data for a user in Redis
         """
         key = self._make_key(user_id, "data")
 
@@ -320,7 +320,7 @@ class RedisStorage(Storage):
 
     async def get_data(self, user_id: int) -> Dict[str, Any]:
         """
-        Pobiera dane użytkownika z Redis
+        Gets user data from Redis
         """
         key = self._make_key(user_id, "data")
         data = await self.redis.get(key)
@@ -337,7 +337,7 @@ class RedisStorage(Storage):
 
     async def update_data(self, user_id: int, **kwargs):
         """
-        Aktualizuje dane użytkownika w Redis
+        Updates user data in Redis
         """
         data = await self.get_data(user_id)
         data.update(kwargs)
@@ -346,7 +346,7 @@ class RedisStorage(Storage):
 
     async def clear(self, user_id: int):
         """
-        Czyści stan i dane użytkownika z Redis
+        Clears the state and data for a user in Redis
         """
         state_key = self._make_key(user_id, "state")
         data_key = self._make_key(user_id, "data")
@@ -356,8 +356,8 @@ class RedisStorage(Storage):
 
     async def clear_all(self):
         """
-        Czyści wszystkie dane wszystkich użytkowników z Redis
-        Uwaga: Usuwa wszystkie klucze z podanym prefiksem!
+        Clears all data for all users from Redis
+        Note: Deletes all keys with the specified prefix!
         """
         pattern = f"{self.prefix}:*"
         keys = await self.redis.keys(pattern)
@@ -367,16 +367,16 @@ class RedisStorage(Storage):
             logger.debug(f"RedisStorage: cleared all data ({len(keys)} keys)")
 
     async def close(self):
-        """Zamyka połączenie Redis"""
+        """Closes the Redis connection"""
         await self.redis.close()
         logger.debug("RedisStorage: connection closed")
 
 
 class MongoStorage(Storage):
     """
-    Storage w MongoDB (wymaga motor)
+    MongoDB storage (requires motor)
 
-    Przykład:
+    Example:
         import motor.motor_asyncio
         client = motor.motor_asyncio.AsyncIOMotorClient()
         db = client.my_database
@@ -387,8 +387,8 @@ class MongoStorage(Storage):
     def __init__(self, database, collection: str = "fsm"):
         """
         Args:
-            database: Instancja bazy danych MongoDB
-            collection: Nazwa kolekcji
+            database: MongoDB database instance
+            collection: Collection name
         """
         self.db = database
         self.collection = database[collection]
@@ -396,7 +396,7 @@ class MongoStorage(Storage):
 
     async def set_state(self, user_id: int, state: Optional[Union[str, State]]):
         """
-        Ustawia stan dla użytkownika w MongoDB
+        Sets the state for a user in MongoDB
         """
         state_str = str(state) if isinstance(state, State) else state
 
@@ -409,7 +409,7 @@ class MongoStorage(Storage):
 
     async def get_state(self, user_id: int) -> Optional[str]:
         """
-        Pobiera stan użytkownika z MongoDB
+        Gets the user's state from MongoDB
         """
         doc = await self.collection.find_one({"_id": user_id})
         state = doc.get("state") if doc else None
@@ -418,7 +418,7 @@ class MongoStorage(Storage):
 
     async def resolve_state(self, state_str: str) -> Optional[State]:
         """
-        Konwertuje string na obiekt State jeśli możliwe
+        Converts a string to a State object if possible
         """
         for resolver in self._state_resolvers.values():
             state = resolver(state_str)
@@ -428,7 +428,7 @@ class MongoStorage(Storage):
 
     def register_state_resolver(self, group: Type[StatesGroup]):
         """
-        Rejestruje resolver dla grupy stanów
+        Registers a resolver for a group of states
         """
 
         def resolver(state_str: str) -> Optional[State]:
@@ -441,7 +441,7 @@ class MongoStorage(Storage):
 
     async def set_data(self, user_id: int, data: Dict[str, Any]):
         """
-        Ustawia dane dla użytkownika w MongoDB
+        Sets data for a user in MongoDB
         """
         await self.collection.update_one(
             {"_id": user_id},
@@ -452,7 +452,7 @@ class MongoStorage(Storage):
 
     async def get_data(self, user_id: int) -> Dict[str, Any]:
         """
-        Pobiera dane użytkownika z MongoDB
+        Gets user data from MongoDB
         """
         doc = await self.collection.find_one({"_id": user_id})
         data = doc.get("data", {}) if doc else {}
@@ -461,7 +461,7 @@ class MongoStorage(Storage):
 
     async def update_data(self, user_id: int, **kwargs):
         """
-        Aktualizuje dane użytkownika w MongoDB
+        Updates user data in MongoDB
         """
         await self.collection.update_one(
             {"_id": user_id},
@@ -472,19 +472,19 @@ class MongoStorage(Storage):
 
     async def clear(self, user_id: int):
         """
-        Czyści stan i dane użytkownika z MongoDB
+        Clears the state and data for a user in MongoDB
         """
         await self.collection.delete_one({"_id": user_id})
         logger.debug(f"MongoStorage: cleared data for user {user_id}")
 
     async def clear_all(self):
-        """Czyści wszystkie dane z MongoDB"""
+        """Clears all data from MongoDB"""
         await self.collection.delete_many({})
         logger.debug("MongoStorage: cleared all data")
 
 
 class InMemoryStorage(MemoryStorage):
     """
-    Alias dla MemoryStorage dla zachowania kompatybilności
+    Alias for MemoryStorage for backward compatibility
     """
     pass

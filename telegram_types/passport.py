@@ -5,7 +5,7 @@ from datetime import datetime
 
 @dataclass
 class PassportFile:
-    """Plik passport"""
+    """Passport file"""
     file_id: str
     file_unique_id: str
     file_size: int
@@ -23,7 +23,7 @@ class PassportFile:
 
 @dataclass
 class EncryptedPassportElement:
-    """Zaszyfrowany element passport"""
+    """Encrypted passport element"""
     type: str
     hash: str
     data: Optional[str] = None
@@ -53,7 +53,7 @@ class EncryptedPassportElement:
 
 @dataclass
 class EncryptedCredentials:
-    """Zaszyfrowane poświadczenia"""
+    """Encrypted credentials"""
     data: str
     hash: str
     secret: str
@@ -69,7 +69,7 @@ class EncryptedCredentials:
 
 @dataclass
 class PassportData:
-    """Dane passport"""
+    """Passport data"""
     data: List[EncryptedPassportElement]
     credentials: EncryptedCredentials
 

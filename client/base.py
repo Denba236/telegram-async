@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class TelegramClient(TelegramMethods):
-    """Klient API Telegram z automatycznym ponawianiem"""
+    """Telegram API Client with automatic retries"""
 
     def __init__(
             self,
@@ -25,10 +25,10 @@ class TelegramClient(TelegramMethods):
     ):
         """
         Args:
-            token: Token bota
-            retry_count: Liczba ponowień przy błędach
-            retry_delay: Bazowe opóźnienie między ponowieniami (exponential backoff)
-            timeout: Timeout dla zapytań w sekundach
+            token: Bot token
+            retry_count: Number of retries on errors
+            retry_delay: Base delay between retries (exponential backoff)
+            timeout: Request timeout in seconds
         """
         self.token = token
         self.base_url = f"https://api.telegram.org/bot{token}"
@@ -39,7 +39,7 @@ class TelegramClient(TelegramMethods):
         self.retry_delay = retry_delay
         self.timeout = timeout
 
-        # Statystyki
+        # Statistics
         self.stats = {
             'total_requests': 0,
             'failed_requests': 0,
@@ -48,7 +48,7 @@ class TelegramClient(TelegramMethods):
         }
 
     async def _get_session(self) -> aiohttp.ClientSession:
-        """Pobiera lub tworzy sesję HTTP"""
+        """Gets or creates an HTTP session"""
         if self._session is None or self._session.closed:
             timeout = aiohttp.ClientTimeout(total=self.timeout)
             self._session = aiohttp.ClientSession(timeout=timeout)
@@ -61,15 +61,15 @@ class TelegramClient(TelegramMethods):
             files: Optional[Dict] = None
     ) -> Dict:
         """
-        Wykonuje zapytanie do API Telegram z automatycznym ponawianiem
+        Executes a request to the Telegram API with automatic retries
 
         Args:
-            method: Metoda API (np. 'sendMessage')
-            data: Dane zapytania
-            files: Pliki do wysłania (multipart/form-data)
+            method: API method (e.g., 'sendMessage')
+            data: Request data
+            files: Files to send (multipart/form-data)
 
         Returns:
-            Odpowiedź z Telegram API
+            Response from Telegram API
         """
         self.stats['total_requests'] += 1
 
@@ -114,7 +114,7 @@ class TelegramClient(TelegramMethods):
             data: Dict[str, Any],
             files: Optional[Dict] = None
     ) -> Dict:
-        """Wykonuje pojedyncze zapytanie"""
+        """Executes a single request"""
         session = await self._get_session()
         url = f"{self.base_url}/{method}"
 
@@ -152,7 +152,7 @@ class TelegramClient(TelegramMethods):
             raise TimeoutError(f"Request timeout after {self.timeout}s")
 
     async def _handle_response(self, resp: aiohttp.ClientResponse) -> Dict:
-        """Obsługuje odpowiedź z Telegram API"""
+        """Handles response from Telegram API"""
         try:
             result = await resp.json()
         except json.JSONDecodeError:
@@ -172,11 +172,11 @@ class TelegramClient(TelegramMethods):
         return result.get('result', {})
 
     async def close(self):
-        """Zamyka sesję"""
+        """Closes the session"""
         if self._session and not self._session.closed:
             await self._session.close()
             logger.debug("Session closed")
 
     def get_stats(self) -> Dict:
-        """Zwraca statystyki klienta"""
+        """Returns client statistics"""
         return self.stats.copy()

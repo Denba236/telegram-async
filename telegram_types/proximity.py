@@ -6,7 +6,7 @@ from .user import User
 
 @dataclass
 class ProximityAlertTriggered:
-    """Alert zbliżeniowy"""
+    """Proximity alert triggered"""
     traveler: User
     watcher: User
     distance: int

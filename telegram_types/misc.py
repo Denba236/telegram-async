@@ -9,7 +9,7 @@ from .base import File
 
 @dataclass
 class Contact:
-    """Kontakt"""
+    """Contact"""
     phone_number: str
     first_name: str
     last_name: Optional[str] = None
@@ -29,7 +29,7 @@ class Contact:
 
 @dataclass
 class Dice:
-    """Kostka do gry"""
+    """Dice game"""
     emoji: str  # '🎲', '🎯', '🏀', '⚽', '🎳', '🎰'
     value: int
 
@@ -43,7 +43,7 @@ class Dice:
 
 @dataclass
 class Location:
-    """Lokalizacja"""
+    """Location"""
     longitude: float
     latitude: float
     horizontal_accuracy: Optional[float] = None
@@ -65,7 +65,7 @@ class Location:
 
 @dataclass
 class Venue:
-    """Miejsce"""
+    """Venue"""
     location: Location
     title: str
     address: str
@@ -89,7 +89,7 @@ class Venue:
 
 @dataclass
 class PollOption:
-    """Opcja ankiety"""
+    """Poll option"""
     text: str
     voter_count: int
 
@@ -103,7 +103,7 @@ class PollOption:
 
 @dataclass
 class Poll:
-    """Ankieta"""
+    """Poll"""
     id: str
     question: str
     options: List[PollOption]
@@ -140,7 +140,7 @@ class Poll:
 
 @dataclass
 class Game:
-    """Gra"""
+    """Game"""
     title: str
     description: str
     photo: List[PhotoSize]

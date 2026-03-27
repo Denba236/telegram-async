@@ -7,7 +7,7 @@ from .user import User
 
 @dataclass
 class VideoChatScheduled:
-    """Zaplanowany czat wideo"""
+    """Scheduled video chat"""
     start_date: datetime
 
     @classmethod
@@ -19,7 +19,7 @@ class VideoChatScheduled:
 
 @dataclass
 class VideoChatStarted:
-    """Rozpoczęty czat wideo"""
+    """Started video chat"""
     pass
 
     @classmethod
@@ -29,7 +29,7 @@ class VideoChatStarted:
 
 @dataclass
 class VideoChatEnded:
-    """Zakończony czat wideo"""
+    """Ended video chat"""
     duration: int
 
     @classmethod
@@ -41,7 +41,7 @@ class VideoChatEnded:
 
 @dataclass
 class VideoChatParticipantsInvited:
-    """Zaproszeni uczestnicy czatu wideo"""
+    """Video chat participants invited"""
     users: List[User]
 
     @classmethod

@@ -46,12 +46,12 @@ class ReplyKeyboardMarkup:
 
     @classmethod
     def row(cls, *buttons: str) -> 'ReplyKeyboardMarkup':
-        """Tworzy klawiaturę z jednym wierszem (dla prostych przycisków tekstowych)"""
+        """Creates a keyboard with a single row (for simple text buttons)"""
         keyboard = [[ReplyKeyboardButton(text) for text in buttons]]
         return cls(keyboard)
 
     def add(self, *buttons: str) -> 'ReplyKeyboardMarkup':
-        """Dodaje nowy wiersz z przyciskami tekstowymi"""
+        """Adds a new row with text buttons"""
         self.keyboard.append([ReplyKeyboardButton(text) for text in buttons])
         return self
 
@@ -71,7 +71,7 @@ class ReplyKeyboardMarkup:
 
 
 class ReplyKeyboardRemove:
-    """Klasa do usuwania klawiatury"""
+    """Class to remove the keyboard"""
 
     @staticmethod
     def to_dict() -> Dict[str, Any]:

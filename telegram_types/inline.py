@@ -8,7 +8,7 @@ from .misc import Location
 
 @dataclass
 class InlineQuery:
-    """Zapytanie inline"""
+    """Inline query"""
     id: str
     from_user: User
     query: str
@@ -30,7 +30,7 @@ class InlineQuery:
 
 @dataclass
 class ChosenInlineResult:
-    """Wybrany wynik inline"""
+    """Chosen inline result"""
     result_id: str
     from_user: User
     query: str
@@ -50,7 +50,7 @@ class ChosenInlineResult:
 
 @dataclass
 class CallbackQuery:
-    """Zapytanie zwrotne z przycisku inline"""
+    """Callback query from an inline button"""
     id: str
     from_user: User
     message: Optional[Message] = None

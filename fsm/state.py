@@ -1,8 +1,8 @@
-from typing import Optional, Dict, List, Union, Type
+from typing import Optional, Dict, List, Union
 
 
 class State:
-    """Pojedynczy stan FSM"""
+    """A single FSM state"""
 
     def __init__(self, name: str, group: Optional['StatesGroup'] = None):
         self.name = name
@@ -27,19 +27,19 @@ class State:
 
 
 class StatesGroupMeta(type):
-    """Metaklasa dla StatesGroup do automatycznego zbierania stanów"""
+    """Metaclass for StatesGroup to automatically collect states"""
 
     def __new__(mcs, name, bases, namespace):
         cls = super().__new__(mcs, name, bases, namespace)
 
-        # Zbierz wszystkie stany z klasy
+        # Collect all states from the class
         states = {}
         for key, value in namespace.items():
             if isinstance(value, State):
                 value.group = cls
                 states[key] = value
             elif isinstance(value, StatesGroupMeta):
-                # Dla zagnieżdżonych grup
+                # For nested groups
                 for state_name, state in value._states.items():
                     states[f"{value.__name__}.{state_name}"] = state
 
@@ -49,9 +49,9 @@ class StatesGroupMeta(type):
 
 class StatesGroup(metaclass=StatesGroupMeta):
     """
-    Grupa stanów FSM
+    A group of FSM states
 
-    Przykład:
+    Example:
         class OrderStates(StatesGroup):
             name = State("name")
             address = State("address")
@@ -66,16 +66,16 @@ class StatesGroup(metaclass=StatesGroupMeta):
 
     @classmethod
     def get_state(cls, name: str) -> Optional[State]:
-        """Pobiera stan po nazwie"""
+        """Gets a state by name"""
         return cls._states.get(name)
 
     @classmethod
     def all_states(cls) -> List[State]:
-        """Zwraca wszystkie stany w grupie"""
+        """Returns all states in the group"""
         return list(cls._states.values())
 
     @classmethod
     def has_state(cls, state: Union[str, State]) -> bool:
-        """Sprawdza czy stan należy do grupy"""
+        """Checks if a state belongs to the group"""
         state_str = str(state) if isinstance(state, State) else state
         return any(str(s) == state_str or s.name == state_str for s in cls._states.values())

@@ -7,7 +7,7 @@ from .user import User, Chat
 
 @dataclass
 class ChatMember:
-    """Członek czatu"""
+    """Chat member"""
     status: str  # 'creator', 'administrator', 'member', 'restricted', 'left', 'kicked'
     user: User
     is_anonymous: Optional[bool] = None
@@ -61,7 +61,7 @@ class ChatMember:
 
 @dataclass
 class ChatInviteLink:
-    """Link zaproszenia do czatu"""
+    """Chat invite link"""
     invite_link: str
     creator: User
     creates_join_request: bool
@@ -89,7 +89,7 @@ class ChatInviteLink:
 
 @dataclass
 class ChatMemberUpdated:
-    """Aktualizacja członka czatu"""
+    """Chat member updated"""
     chat: Chat
     from_user: User
     date: datetime
@@ -111,7 +111,7 @@ class ChatMemberUpdated:
 
 @dataclass
 class ChatJoinRequest:
-    """Prośba o dołączenie do czatu"""
+    """Chat join request"""
     chat: Chat
     from_user: User
     date: datetime
