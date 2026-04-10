@@ -1,7 +1,18 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 
 
 class InlineKeyboardButton:
+    """
+    Кнопка inline клавиатуры (InlineKeyboardButton в API Telegram)
+    
+    API 9.4+: поддерживает стилизацию (цвет) кнопки через параметр style
+    """
+    
+    # Допустимые стили (цвета) для кнопок - API 9.4+
+    STYLE_PRIMARY = "primary"    # Синий цвет
+    STYLE_SUCCESS = "success"    # Зеленый цвет
+    STYLE_DANGER = "danger"      # Красный цвет
+    
     def __init__(
             self,
             text: str,
@@ -12,7 +23,9 @@ class InlineKeyboardButton:
             switch_inline_query_current_chat: Optional[str] = None,
             callback_game: Optional[Dict] = None,
             pay: bool = False,
-            web_app: Optional[Dict] = None
+            web_app: Optional[Dict] = None,
+            icon_custom_emoji_id: Optional[str] = None,  # API 9.5 - custom emoji icon
+            style: Optional[Literal["primary", "success", "danger"]] = None  # API 9.4+ - цвет кнопки
     ):
         self.text = text
         self.callback_data = callback_data
@@ -23,6 +36,8 @@ class InlineKeyboardButton:
         self.callback_game = callback_game
         self.pay = pay
         self.web_app = web_app
+        self.icon_custom_emoji_id = icon_custom_emoji_id
+        self.style = style  # Стиль (цвет) кнопки: primary/success/danger
 
     def to_dict(self) -> Dict[str, Any]:
         data = {'text': self.text}
@@ -42,6 +57,10 @@ class InlineKeyboardButton:
             data['pay'] = True
         if self.web_app is not None:
             data['web_app'] = self.web_app
+        if self.icon_custom_emoji_id is not None:
+            data['icon_custom_emoji_id'] = self.icon_custom_emoji_id  # API 9.5
+        if self.style is not None:
+            data['style'] = self.style  # API 9.4+ - цвет кнопки
         return data
 
 

@@ -47,6 +47,10 @@ class WebhookServer:
         # Hooki
         self.on_update: Optional[Callable] = None
         self.on_error: Optional[Callable] = None
+        
+        # Secret token validation
+        self._secret_token: Optional[str] = None
+        self._webhook_middlewares: list = []
 
     async def handle(self, request: web.Request) -> web.Response:
         """
@@ -58,6 +62,19 @@ class WebhookServer:
 
             if request.content_type != 'application/json':
                 return web.Response(status=400, text="Expected application/json")
+
+            # Run webhook middlewares
+            for middleware in self._webhook_middlewares:
+                middleware_result = await middleware(request)
+                if middleware_result is not None:
+                    return middleware_result
+
+            # Secret token validation
+            if self._secret_token:
+                token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
+                if not token or token != self._secret_token:
+                    logger.warning("Invalid or missing secret token")
+                    return web.Response(status=403, text="Forbidden")
 
             try:
                 update_data = await request.json()
@@ -250,3 +267,31 @@ class WebhookServer:
     def is_running(self) -> bool:
         """Sprawdza czy serwer działa"""
         return self._runner is not None and self._runner.server is not None
+
+    def set_secret_token(self, secret_token: str):
+        """
+        Sets the secret token for webhook validation.
+        
+        Args:
+            secret_token: Secret token to validate against
+        """
+        self._secret_token = secret_token
+
+    def add_webhook_middleware(self, middleware):
+        """
+        Adds middleware to be run before processing webhook requests.
+        
+        Args:
+            middleware: Async function that takes request and returns Response or None
+        """
+        self._webhook_middlewares.append(middleware)
+
+    def enable_secret_token(self, secret_token: Optional[str] = None):
+        """
+        Enables secret token validation. Must be called before set_webhook.
+        
+        Args:
+            secret_token: The same token passed to set_webhook(secret_token=...)
+        """
+        if secret_token:
+            self._secret_token = secret_token

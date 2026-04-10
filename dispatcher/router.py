@@ -32,23 +32,39 @@ class Router:
         self.sub_routers: List['Router'] = []
         # Router-level middleware can be added here in the future
         self.middlewares: List[Callable] = []
+        # Custom context class injection
+        self._context_class: Optional[type] = None
 
-    def message(self, *filters):
-        """Decorator for message handlers"""
+    def message(self, *filters, priority: int = 0):
+        """
+        Decorator for message handlers
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
         def decorator(func: Callable):
             self.handlers['message'].append({
                 'func': func,
-                'filters': filters
+                'filters': filters,
+                'priority': priority
             })
             return func
         return decorator
 
-    def callback_query(self, *filters):
-        """Decorator for callback query handlers"""
+    def callback_query(self, *filters, priority: int = 0):
+        """
+        Decorator for callback query handlers
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
         def decorator(func: Callable):
             self.handlers['callback_query'].append({
                 'func': func,
-                'filters': filters
+                'filters': filters,
+                'priority': priority
             })
             return func
         return decorator
@@ -107,11 +123,11 @@ class Router:
         Returns True if the update was handled.
         """
         update = ctx.update
-        
+
         # Determine update type
         update_type = None
         event = None
-        
+
         if update.message:
             update_type = 'message'
             event = update.message
@@ -122,7 +138,7 @@ class Router:
             update_type = 'edited_message'
             event = update.edited_message
         # ... other types can be added here
-        
+
         if not update_type or update_type not in self.handlers:
             # Try sub-routers even if we don't recognize the type locally
             for router in self.sub_routers:
@@ -135,11 +151,27 @@ class Router:
             if await router.feed_update(ctx):
                 return True
 
-        # 2. Process local handlers
-        for handler_dict in self.handlers[update_type]:
+        # 2. Sort handlers by priority (higher first)
+        sorted_handlers = sorted(
+            self.handlers[update_type],
+            key=lambda h: h.get('priority', 0),
+            reverse=True
+        )
+
+        # 3. Process local handlers
+        for handler_dict in sorted_handlers:
             try:
                 if await self._check_filters(handler_dict['filters'], event, ctx):
-                    await handler_dict['func'](ctx)
+                    # Use custom context class if set
+                    handler_ctx = ctx
+                    if self._context_class:
+                        handler_ctx = self._context_class(
+                            client=ctx.client,
+                            update=ctx.update,
+                            fsm=ctx.fsm
+                        )
+                    
+                    await handler_dict['func'](handler_ctx)
                     return True
             except SkipHandler:
                 continue
@@ -148,3 +180,12 @@ class Router:
                 raise e
 
         return False
+    
+    def set_context_class(self, context_class: type):
+        """
+        Set a custom context class for this router.
+        
+        Args:
+            context_class: Custom Context subclass
+        """
+        self._context_class = context_class

@@ -73,6 +73,12 @@ class Dispatcher(Router):
 
     async def start_polling(self, client: TelegramClient, skip_updates: bool = True):
         """Starts the bot in polling mode"""
+        # Ensure webhook is deleted before starting polling
+        try:
+            await client.delete_webhook(drop_pending_updates=skip_updates)
+        except Exception as e:
+            logger.warning(f"Failed to delete webhook: {e}")
+
         print("🤖 Bot started! Press Ctrl+C to stop.")
         self._running = True
         offset = None

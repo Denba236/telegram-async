@@ -5,6 +5,13 @@ import aiohttp
 from ..exceptions import TelegramAPIError, NetworkError
 
 
+def _convert_markup(markup: Any) -> Any:
+    """Convert markup objects to dict if they have to_dict() method"""
+    if hasattr(markup, 'to_dict'):
+        return markup.to_dict()
+    return markup
+
+
 class TelegramMethods:
     """Wszystkie metody API Telegram"""
 
@@ -39,7 +46,7 @@ class TelegramMethods:
             'chat_id': chat_id,
             'text': text,
             'parse_mode': parse_mode,
-            'reply_markup': reply_markup,
+            'reply_markup': _convert_markup(reply_markup),
             'disable_web_page_preview': disable_web_page_preview,
             'disable_notification': disable_notification,
             'reply_to_message_id': reply_to_message_id
@@ -66,7 +73,7 @@ class TelegramMethods:
             if parse_mode:
                 data['parse_mode'] = parse_mode
             if reply_markup:
-                data['reply_markup'] = reply_markup
+                data['reply_markup'] = _convert_markup(reply_markup)
             if disable_notification:
                 data['disable_notification'] = disable_notification
             if reply_to_message_id:
@@ -79,7 +86,7 @@ class TelegramMethods:
             if parse_mode:
                 data['parse_mode'] = parse_mode
             if reply_markup:
-                data['reply_markup'] = json.dumps(reply_markup)
+                data['reply_markup'] = json.dumps(_convert_markup(reply_markup))
             if disable_notification:
                 data['disable_notification'] = str(disable_notification)
             if reply_to_message_id:
@@ -107,7 +114,7 @@ class TelegramMethods:
             if parse_mode:
                 data['parse_mode'] = parse_mode
             if reply_markup:
-                data['reply_markup'] = reply_markup
+                data['reply_markup'] = _convert_markup(reply_markup)
             if disable_notification:
                 data['disable_notification'] = disable_notification
             if reply_to_message_id:
@@ -120,7 +127,7 @@ class TelegramMethods:
             if parse_mode:
                 data['parse_mode'] = parse_mode
             if reply_markup:
-                data['reply_markup'] = json.dumps(reply_markup)
+                data['reply_markup'] = json.dumps(_convert_markup(reply_markup))
             if disable_notification:
                 data['disable_notification'] = str(disable_notification)
             if reply_to_message_id:
@@ -159,7 +166,7 @@ class TelegramMethods:
             if thumb:
                 data['thumb'] = thumb
             if reply_markup:
-                data['reply_markup'] = reply_markup
+                data['reply_markup'] = _convert_markup(reply_markup)
             if disable_notification:
                 data['disable_notification'] = disable_notification
             if reply_to_message_id:
@@ -184,7 +191,7 @@ class TelegramMethods:
                 else:
                     data['thumb'] = thumb
             if reply_markup:
-                data['reply_markup'] = json.dumps(reply_markup)
+                data['reply_markup'] = json.dumps(_convert_markup(reply_markup))
             if disable_notification:
                 data['disable_notification'] = str(disable_notification)
             if reply_to_message_id:
@@ -225,7 +232,7 @@ class TelegramMethods:
                 data['thumb'] = thumb
             data['supports_streaming'] = supports_streaming
             if reply_markup:
-                data['reply_markup'] = reply_markup
+                data['reply_markup'] = _convert_markup(reply_markup)
             if disable_notification:
                 data['disable_notification'] = disable_notification
             if reply_to_message_id:
@@ -251,7 +258,7 @@ class TelegramMethods:
                     data['thumb'] = thumb
             data['supports_streaming'] = str(supports_streaming)
             if reply_markup:
-                data['reply_markup'] = json.dumps(reply_markup)
+                data['reply_markup'] = json.dumps(_convert_markup(reply_markup))
             if disable_notification:
                 data['disable_notification'] = str(disable_notification)
             if reply_to_message_id:
@@ -281,7 +288,7 @@ class TelegramMethods:
             if duration:
                 data['duration'] = duration
             if reply_markup:
-                data['reply_markup'] = reply_markup
+                data['reply_markup'] = _convert_markup(reply_markup)
             if disable_notification:
                 data['disable_notification'] = disable_notification
             if reply_to_message_id:
@@ -297,7 +304,7 @@ class TelegramMethods:
             if duration:
                 data['duration'] = str(duration)
             if reply_markup:
-                data['reply_markup'] = json.dumps(reply_markup)
+                data['reply_markup'] = json.dumps(_convert_markup(reply_markup))
             if disable_notification:
                 data['disable_notification'] = str(disable_notification)
             if reply_to_message_id:
@@ -327,7 +334,7 @@ class TelegramMethods:
             if thumb:
                 data['thumb'] = thumb
             if reply_markup:
-                data['reply_markup'] = reply_markup
+                data['reply_markup'] = _convert_markup(reply_markup)
             if disable_notification:
                 data['disable_notification'] = disable_notification
             if reply_to_message_id:
@@ -346,7 +353,7 @@ class TelegramMethods:
                 else:
                     data['thumb'] = thumb
             if reply_markup:
-                data['reply_markup'] = json.dumps(reply_markup)
+                data['reply_markup'] = json.dumps(_convert_markup(reply_markup))
             if disable_notification:
                 data['disable_notification'] = str(disable_notification)
             if reply_to_message_id:
@@ -391,7 +398,7 @@ class TelegramMethods:
             'live_period': live_period,
             'heading': heading,
             'proximity_alert_radius': proximity_alert_radius,
-            'reply_markup': reply_markup,
+            'reply_markup': _convert_markup(reply_markup),
             'disable_notification': disable_notification,
             'reply_to_message_id': reply_to_message_id
         }
@@ -423,7 +430,7 @@ class TelegramMethods:
             'foursquare_type': foursquare_type,
             'google_place_id': google_place_id,
             'google_place_type': google_place_type,
-            'reply_markup': reply_markup,
+            'reply_markup': _convert_markup(reply_markup),
             'disable_notification': disable_notification,
             'reply_to_message_id': reply_to_message_id
         }
@@ -447,7 +454,7 @@ class TelegramMethods:
             'first_name': first_name,
             'last_name': last_name,
             'vcard': vcard,
-            'reply_markup': reply_markup,
+            'reply_markup': _convert_markup(reply_markup),
             'disable_notification': disable_notification,
             'reply_to_message_id': reply_to_message_id
         }
@@ -485,7 +492,7 @@ class TelegramMethods:
             'open_period': open_period,
             'close_date': close_date,
             'is_closed': is_closed,
-            'reply_markup': reply_markup,
+            'reply_markup': _convert_markup(reply_markup),
             'disable_notification': disable_notification,
             'reply_to_message_id': reply_to_message_id
         }
@@ -505,7 +512,7 @@ class TelegramMethods:
             'emoji': emoji,
             'disable_notification': disable_notification,
             'reply_to_message_id': reply_to_message_id,
-            'reply_markup': reply_markup
+            'reply_markup': _convert_markup(reply_markup)
         }
         return await self._request('sendDice', data)
 
@@ -567,7 +574,7 @@ class TelegramMethods:
         data = {
             'text': text,
             'parse_mode': parse_mode,
-            'reply_markup': reply_markup,
+            'reply_markup': _convert_markup(reply_markup),
             'disable_web_page_preview': disable_web_page_preview
         }
 
@@ -594,7 +601,7 @@ class TelegramMethods:
         data = {
             'caption': caption,
             'parse_mode': parse_mode,
-            'reply_markup': reply_markup
+            'reply_markup': _convert_markup(reply_markup)
         }
 
         if chat_id and message_id:
@@ -618,7 +625,7 @@ class TelegramMethods:
         """Edytuje media wiadomości"""
         data = {
             'media': json.dumps(media),
-            'reply_markup': reply_markup
+            'reply_markup': _convert_markup(reply_markup)
         }
 
         if chat_id and message_id:
@@ -639,7 +646,7 @@ class TelegramMethods:
             reply_markup: Optional[Dict] = None
     ) -> Dict:
         """Edytuje przyciski wiadomości"""
-        data = {'reply_markup': reply_markup}
+        data = {'reply_markup': _convert_markup(reply_markup)}
 
         if chat_id and message_id:
             data['chat_id'] = chat_id
@@ -661,7 +668,7 @@ class TelegramMethods:
         data = {
             'chat_id': chat_id,
             'message_id': message_id,
-            'reply_markup': reply_markup
+            'reply_markup': _convert_markup(reply_markup)
         }
         return await self._request('stopPoll', data)
 
@@ -765,3 +772,1452 @@ class TelegramMethods:
         """Odbanowuje użytkownika w czacie"""
         data = {'chat_id': chat_id, 'user_id': user_id, 'only_if_banned': only_if_banned}
         return await self._request('unbanChatMember', data)
+
+    # === NOWE METODY API 9.5 ===
+
+    async def send_message_draft(
+            self,
+            chat_id: Union[int, str],
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            text: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            entities: Optional[List[Dict]] = None,
+            streaming_mode: Optional[str] = None
+    ) -> bool:
+        """
+        Wysyła szkic wiadomości do czatu - pozwala na strumieniowe przesyłanie
+        częściowej treści wiadomości podczas jej generowania (API 9.5).
+        
+        Tworzy natywny wskaźnik "pisania" i dynamicznie aktualizuje wyświetlany tekst.
+        Dostępne dla wszystkich botów od API 9.5.
+        
+        Args:
+            chat_id: Identifier czatu lub nazwa użytkownika
+            message_id: ID wiadomości do edycji (opcjonalne)
+            inline_message_id: ID wiadomości inline (opcjonalne)
+            text: Tekst szkicu wiadomości
+            parse_mode: Tryb parsowania (Markdown, MarkdownV2, HTML)
+            entities: Lista encji formatowania tekstu
+            streaming_mode: Tryb strumieniowania: 'partial', 'block', lub 'progress' (domyślnie 'partial')
+        
+        Returns:
+            True po sukcesie
+        
+        Documentation:
+            https://core.telegram.org/bots/api#sendmessagedraft
+        """
+        data = {
+            'chat_id': chat_id,
+            'message_id': message_id,
+            'inline_message_id': inline_message_id,
+            'text': text,
+            'parse_mode': parse_mode,
+            'entities': entities,
+            'streaming_mode': streaming_mode
+        }
+        # Usuń None values
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('sendMessageDraft', data)
+
+    async def set_chat_member_tag(
+            self,
+            chat_id: Union[int, str],
+            user_id: int,
+            tag: Optional[str] = None
+    ) -> bool:
+        """
+        Ustawia tag dla członka grupy lub supergrupy (API 9.5).
+        
+        Bot musi być administratorem z uprawnieniem can_manage_tags.
+        
+        Args:
+            chat_id: Identifier czatu lub nazwa użytkownika supergrupy
+            user_id: ID użytkownika
+            tag: Nowy tag dla członka (0-16 znaków, emoji niedozwolone)
+        
+        Returns:
+            True po sukcesie
+        
+        Documentation:
+            https://core.telegram.org/bots/api#setchatmembertag
+        """
+        data = {
+            'chat_id': chat_id,
+            'user_id': user_id,
+            'tag': tag
+        }
+        # Usuń None values
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('setChatMemberTag', data)
+
+    async def promote_chat_member(
+            self,
+            chat_id: Union[int, str],
+            user_id: int,
+            is_anonymous: Optional[bool] = None,
+            can_manage_chat: Optional[bool] = None,
+            can_change_info: Optional[bool] = None,
+            can_post_messages: Optional[bool] = None,
+            can_edit_messages: Optional[bool] = None,
+            can_delete_messages: Optional[bool] = None,
+            can_invite_users: Optional[bool] = None,
+            can_restrict_members: Optional[bool] = None,
+            can_pin_messages: Optional[bool] = None,
+            can_manage_video_chats: Optional[bool] = None,
+            can_manage_topics: Optional[bool] = None,
+            can_promote_members: Optional[bool] = None,
+            can_manage_tags: Optional[bool] = None
+    ) -> bool:
+        """
+        Promuje użytkownika na administratora (API 9.5 z can_manage_tags).
+        
+        Args:
+            chat_id: Identifier czatu lub nazwa użytkownika
+            user_id: ID użytkownika do promowania
+            is_anonymous: Czy admin jest anonimowy
+            can_manage_chat: Czy może zarządzać czatem
+            can_change_info: Czy może zmieniać informacje o czacie
+            can_post_messages: Czy może publikować w kanale
+            can_edit_messages: Czy może edytować wiadomości
+            can_delete_messages: Czy może usuwać wiadomości
+            can_invite_users: Czy może zapraszać użytkowników
+            can_restrict_members: Czy może ograniczać użytkowników
+            can_pin_messages: Czy może przypinać wiadomości
+            can_manage_video_chats: Czy może zarządzać czatami wideo
+            can_manage_topics: Czy może zarządzać tematami
+            can_promote_members: Czy może promować członków
+            can_manage_tags: Czy może zarządzać tagami członków (API 9.5)
+        
+        Returns:
+            True po sukcesie
+        
+        Documentation:
+            https://core.telegram.org/bots/api#promotechatmember
+        """
+        data = {
+            'chat_id': chat_id,
+            'user_id': user_id,
+            'is_anonymous': is_anonymous,
+            'can_manage_chat': can_manage_chat,
+            'can_change_info': can_change_info,
+            'can_post_messages': can_post_messages,
+            'can_edit_messages': can_edit_messages,
+            'can_delete_messages': can_delete_messages,
+            'can_invite_users': can_invite_users,
+            'can_restrict_members': can_restrict_members,
+            'can_pin_messages': can_pin_messages,
+            'can_manage_video_chats': can_manage_video_chats,
+            'can_manage_topics': can_manage_topics,
+            'can_promote_members': can_promote_members,
+            'can_manage_tags': can_manage_tags
+        }
+        # Usuń None values
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('promoteChatMember', data)
+
+    # ==================== Bot Commands API ====================
+
+    async def set_my_commands(
+            self,
+            commands: List[Dict[str, str]],
+            scope: Optional[Dict[str, Any]] = None,
+            language_code: Optional[str] = None
+    ) -> bool:
+        """
+        Sets bot commands for the specified scope and language.
+        
+        Args:
+            commands: List of dicts with 'command' and 'description' keys
+            scope: BotCommandScope dict (optional)
+            language_code: IETF language code (optional)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setmycommands
+        """
+        data = {'commands': commands}
+        if scope:
+            data['scope'] = scope
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('setMyCommands', data)
+
+    async def get_my_commands(
+            self,
+            scope: Optional[Dict[str, Any]] = None,
+            language_code: Optional[str] = None
+    ) -> List[Dict[str, str]]:
+        """
+        Gets bot commands for the specified scope and language.
+        
+        Args:
+            scope: BotCommandScope dict (optional)
+            language_code: IETF language code (optional)
+            
+        Returns:
+            List of BotCommand objects
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getmycommands
+        """
+        data = {}
+        if scope:
+            data['scope'] = scope
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('getMyCommands', data)
+
+    async def delete_my_commands(
+            self,
+            scope: Optional[Dict[str, Any]] = None,
+            language_code: Optional[str] = None
+    ) -> bool:
+        """
+        Deletes bot commands for the specified scope and language.
+        
+        Args:
+            scope: BotCommandScope dict (optional)
+            language_code: IETF language code (optional)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#deletemycommands
+        """
+        data = {}
+        if scope:
+            data['scope'] = scope
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('deleteMyCommands', data)
+
+    async def set_my_name(
+            self,
+            name: Optional[str] = None,
+            language_code: Optional[str] = None
+    ) -> bool:
+        """
+        Sets bot name for the specified language.
+        
+        Args:
+            name: Bot name (2-64 chars, optional)
+            language_code: IETF language code (optional)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setmyname
+        """
+        data = {}
+        if name is not None:
+            data['name'] = name
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('setMyName', data)
+
+    async def get_my_name(self, language_code: Optional[str] = None) -> Dict[str, str]:
+        """
+        Gets bot name for the specified language.
+        
+        Args:
+            language_code: IETF language code (optional)
+            
+        Returns:
+            Dict with 'name' key
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getmyname
+        """
+        data = {}
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('getMyName', data)
+
+    async def set_my_description(
+            self,
+            description: Optional[str] = None,
+            language_code: Optional[str] = None
+    ) -> bool:
+        """
+        Sets bot description for the specified language.
+        
+        Args:
+            description: Bot description (0-512 chars, optional)
+            language_code: IETF language code (optional)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setmydescription
+        """
+        data = {}
+        if description is not None:
+            data['description'] = description
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('setMyDescription', data)
+
+    async def get_my_description(self, language_code: Optional[str] = None) -> Dict[str, str]:
+        """
+        Gets bot description for the specified language.
+        
+        Args:
+            language_code: IETF language code (optional)
+            
+        Returns:
+            Dict with 'description' key
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getmydescription
+        """
+        data = {}
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('getMyDescription', data)
+
+    async def set_my_short_description(
+            self,
+            short_description: Optional[str] = None,
+            language_code: Optional[str] = None
+    ) -> bool:
+        """
+        Sets bot short description for the specified language.
+        
+        Args:
+            short_description: Short description (0-120 chars, optional)
+            language_code: IETF language code (optional)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setmyshortdescription
+        """
+        data = {}
+        if short_description is not None:
+            data['short_description'] = short_description
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('setMyShortDescription', data)
+
+    async def get_my_short_description(self, language_code: Optional[str] = None) -> Dict[str, str]:
+        """
+        Gets bot short description for the specified language.
+        
+        Args:
+            language_code: IETF language code (optional)
+            
+        Returns:
+            Dict with 'short_description' key
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getmyshortdescription
+        """
+        data = {}
+        if language_code:
+            data['language_code'] = language_code
+        return await self._request('getMyShortDescription', data)
+
+    # ==================== Payments API ====================
+
+    async def send_invoice(
+            self,
+            chat_id: Union[int, str],
+            title: str,
+            description: str,
+            payload: str,
+            currency: str,
+            prices: List[Dict[str, Any]],
+            provider_token: Optional[str] = None,
+            max_tip_amount: Optional[int] = None,
+            suggested_tip_amounts: Optional[List[int]] = None,
+            start_parameter: Optional[str] = None,
+            provider_data: Optional[Union[str, Dict]] = None,
+            photo_url: Optional[str] = None,
+            photo_size: Optional[int] = None,
+            photo_width: Optional[int] = None,
+            photo_height: Optional[int] = None,
+            need_name: Optional[bool] = None,
+            need_phone_number: Optional[bool] = None,
+            need_email: Optional[bool] = None,
+            need_shipping_address: Optional[bool] = None,
+            send_phone_number_to_provider: Optional[bool] = None,
+            send_email_to_provider: Optional[bool] = None,
+            is_flexible: Optional[bool] = None,
+            disable_notification: bool = False,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Sends an invoice.
+        
+        Args:
+            chat_id: Target chat ID
+            title: Product name
+            description: Product description
+            payload: Bot-defined payload (max 128 bytes)
+            currency: ISO 4217 currency code
+            prices: Price breakdown (list of {label, amount})
+            provider_token: Payment provider token (optional for Telegram Stars)
+            max_tip_amount: Max tip amount in smallest units
+            suggested_tip_amounts: Array of suggested tip amounts
+            start_parameter: Deep-linking parameter
+            provider_data: Payment provider data (JSON)
+            photo_url: Product photo URL
+            photo_size: Photo size
+            photo_width: Photo width
+            photo_height: Photo height
+            need_name: Require user name
+            need_phone_number: Require phone
+            need_email: Require email
+            need_shipping_address: Require shipping
+            send_phone_number_to_provider: Send phone to provider
+            send_email_to_provider: Send email to provider
+            is_flexible: Flexible price
+            disable_notification: Silent send
+            reply_to_message_id: Reply to message ID
+            reply_markup: Inline keyboard
+            
+        Returns:
+            Message object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#sendinvoice
+        """
+        data = {
+            'chat_id': chat_id,
+            'title': title,
+            'description': description,
+            'payload': payload,
+            'currency': currency,
+            'prices': prices,
+            'provider_token': provider_token,
+            'max_tip_amount': max_tip_amount,
+            'suggested_tip_amounts': suggested_tip_amounts,
+            'start_parameter': start_parameter,
+            'provider_data': json.dumps(provider_data) if isinstance(provider_data, dict) else provider_data,
+            'photo_url': photo_url,
+            'photo_size': photo_size,
+            'photo_width': photo_width,
+            'photo_height': photo_height,
+            'need_name': need_name,
+            'need_phone_number': need_phone_number,
+            'need_email': need_email,
+            'need_shipping_address': need_shipping_address,
+            'send_phone_number_to_provider': send_phone_number_to_provider,
+            'send_email_to_provider': send_email_to_provider,
+            'is_flexible': is_flexible,
+            'disable_notification': disable_notification,
+            'reply_to_message_id': reply_to_message_id,
+            'reply_markup': _convert_markup(reply_markup)
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('sendInvoice', data)
+
+    async def create_invoice_link(
+            self,
+            title: str,
+            description: str,
+            payload: str,
+            currency: str,
+            prices: List[Dict[str, Any]],
+            provider_token: Optional[str] = None,
+            max_tip_amount: Optional[int] = None,
+            suggested_tip_amounts: Optional[List[int]] = None,
+            provider_data: Optional[Union[str, Dict]] = None,
+            photo_url: Optional[str] = None,
+            photo_size: Optional[int] = None,
+            photo_width: Optional[int] = None,
+            photo_height: Optional[int] = None,
+            need_name: Optional[bool] = None,
+            need_phone_number: Optional[bool] = None,
+            need_email: Optional[bool] = None,
+            need_shipping_address: Optional[bool] = None,
+            send_phone_number_to_provider: Optional[bool] = None,
+            send_email_to_provider: Optional[bool] = None,
+            is_flexible: Optional[bool] = None
+    ) -> str:
+        """
+        Creates an invoice link.
+        
+        Returns:
+            Invoice link URL
+            
+        Documentation:
+            https://core.telegram.org/bots/api#createinvoicelink
+        """
+        data = {
+            'title': title,
+            'description': description,
+            'payload': payload,
+            'currency': currency,
+            'prices': prices,
+            'provider_token': provider_token,
+            'max_tip_amount': max_tip_amount,
+            'suggested_tip_amounts': suggested_tip_amounts,
+            'provider_data': json.dumps(provider_data) if isinstance(provider_data, dict) else provider_data,
+            'photo_url': photo_url,
+            'photo_size': photo_size,
+            'photo_width': photo_width,
+            'photo_height': photo_height,
+            'need_name': need_name,
+            'need_phone_number': need_phone_number,
+            'need_email': need_email,
+            'need_shipping_address': need_shipping_address,
+            'send_phone_number_to_provider': send_phone_number_to_provider,
+            'send_email_to_provider': send_email_to_provider,
+            'is_flexible': is_flexible
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('createInvoiceLink', data)
+
+    async def answer_shipping_query(
+            self,
+            shipping_query_id: str,
+            ok: bool,
+            shipping_options: Optional[List[Dict[str, Any]]] = None,
+            error_message: Optional[str] = None
+    ) -> bool:
+        """
+        Answers a shipping query.
+        
+        Args:
+            shipping_query_id: Query ID
+            ok: True if delivery is possible
+            shipping_options: Available shipping options (required if ok=True)
+            error_message: Error message (required if ok=False)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#answershippingquery
+        """
+        data = {
+            'shipping_query_id': shipping_query_id,
+            'ok': ok,
+            'shipping_options': shipping_options,
+            'error_message': error_message
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('answerShippingQuery', data)
+
+    async def answer_pre_checkout_query(
+            self,
+            pre_checkout_query_id: str,
+            ok: bool,
+            error_message: Optional[str] = None
+    ) -> bool:
+        """
+        Answers a pre-checkout query.
+        
+        Args:
+            pre_checkout_query_id: Query ID
+            ok: True if checkout is possible
+            error_message: Error message (required if ok=False)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#answerprecheckoutquery
+        """
+        data = {
+            'pre_checkout_query_id': pre_checkout_query_id,
+            'ok': ok,
+            'error_message': error_message
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('answerPreCheckoutQuery', data)
+
+    async def get_star_transactions(
+            self,
+            offset: Optional[int] = None,
+            limit: Optional[int] = None
+    ) -> Dict:
+        """
+        Gets Telegram Star transactions.
+        
+        Returns:
+            StarTransactions object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getstartransactions
+        """
+        data = {}
+        if offset:
+            data['offset'] = offset
+        if limit:
+            data['limit'] = limit
+        return await self._request('getStarTransactions', data)
+
+    async def refund_star_payment(
+            self,
+            user_id: int,
+            telegram_payment_charge_id: str
+    ) -> bool:
+        """
+        Refunds a successful Telegram Star payment.
+        
+        Args:
+            user_id: User ID who made the payment
+            telegram_payment_charge_id: Telegram payment charge ID
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#refundstarpayment
+        """
+        data = {
+            'user_id': user_id,
+            'telegram_payment_charge_id': telegram_payment_charge_id
+        }
+        return await self._request('refundStarPayment', data)
+
+    # ==================== Games API ====================
+
+    async def send_game(
+            self,
+            chat_id: Union[int, str],
+            game_short_name: str,
+            disable_notification: bool = False,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Sends a game.
+        
+        Args:
+            chat_id: Target chat ID
+            game_short_name: Game short name (set via @BotFather)
+            disable_notification: Silent send
+            reply_to_message_id: Reply to message ID
+            reply_markup: Inline keyboard with game button
+            
+        Returns:
+            Message object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#sendgame
+        """
+        data = {
+            'chat_id': chat_id,
+            'game_short_name': game_short_name,
+            'disable_notification': disable_notification,
+            'reply_to_message_id': reply_to_message_id,
+            'reply_markup': _convert_markup(reply_markup)
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('sendGame', data)
+
+    async def set_game_score(
+            self,
+            user_id: int,
+            score: int,
+            force: bool = False,
+            disable_edit_message: bool = False,
+            chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None
+    ) -> Union[Dict, bool]:
+        """
+        Sets game score for a user.
+        
+        Args:
+            user_id: User ID
+            score: New score
+            force: True if score can be decreased
+            disable_edit_message: Don't edit message
+            chat_id: Chat ID
+            message_id: Message ID
+            inline_message_id: Inline message ID
+            
+        Returns:
+            Message on success, or True if inline
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setgamescore
+        """
+        data = {
+            'user_id': user_id,
+            'score': score,
+            'force': force,
+            'disable_edit_message': disable_edit_message,
+            'chat_id': chat_id,
+            'message_id': message_id,
+            'inline_message_id': inline_message_id
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('setGameScore', data)
+
+    async def get_game_high_scores(
+            self,
+            user_id: int,
+            chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None
+    ) -> List[Dict]:
+        """
+        Gets game high scores.
+        
+        Args:
+            user_id: Target user ID
+            chat_id: Chat ID
+            message_id: Message ID
+            inline_message_id: Inline message ID
+            
+        Returns:
+            List of GameHighScore objects
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getgamehighscores
+        """
+        data = {
+            'user_id': user_id,
+            'chat_id': chat_id,
+            'message_id': message_id,
+            'inline_message_id': inline_message_id
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('getGameHighScores', data)
+
+    # ==================== Forum/Topics API ====================
+
+    async def create_forum_topic(
+            self,
+            chat_id: Union[int, str],
+            name: str,
+            icon_color: Optional[int] = None,
+            icon_custom_emoji_id: Optional[str] = None
+    ) -> Dict:
+        """
+        Creates a forum topic.
+        
+        Args:
+            chat_id: Target chat ID
+            name: Topic name (1-128 chars)
+            icon_color: RGB color (0x6FB9F0, 0xFFD67E, 0xE8A269, etc.)
+            icon_custom_emoji_id: Custom emoji ID
+            
+        Returns:
+            ForumTopic object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#createforumtopic
+        """
+        data = {
+            'chat_id': chat_id,
+            'name': name,
+            'icon_color': icon_color,
+            'icon_custom_emoji_id': icon_custom_emoji_id
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('createForumTopic', data)
+
+    async def edit_forum_topic(
+            self,
+            chat_id: Union[int, str],
+            message_thread_id: int,
+            name: Optional[str] = None,
+            icon_custom_emoji_id: Optional[str] = None
+    ) -> bool:
+        """
+        Edits a forum topic.
+        
+        Args:
+            chat_id: Target chat ID
+            message_thread_id: Thread ID
+            name: New topic name
+            icon_custom_emoji_id: New custom emoji ID
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#editforumtopic
+        """
+        data = {
+            'chat_id': chat_id,
+            'message_thread_id': message_thread_id,
+            'name': name,
+            'icon_custom_emoji_id': icon_custom_emoji_id
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('editForumTopic', data)
+
+    async def close_forum_topic(
+            self,
+            chat_id: Union[int, str],
+            message_thread_id: int
+    ) -> bool:
+        """
+        Closes a forum topic.
+        
+        Args:
+            chat_id: Target chat ID
+            message_thread_id: Thread ID
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#closeforumtopic
+        """
+        data = {
+            'chat_id': chat_id,
+            'message_thread_id': message_thread_id
+        }
+        return await self._request('closeForumTopic', data)
+
+    async def reopen_forum_topic(
+            self,
+            chat_id: Union[int, str],
+            message_thread_id: int
+    ) -> bool:
+        """
+        Reopens a forum topic.
+        
+        Args:
+            chat_id: Target chat ID
+            message_thread_id: Thread ID
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#reopenforumtopic
+        """
+        data = {
+            'chat_id': chat_id,
+            'message_thread_id': message_thread_id
+        }
+        return await self._request('reopenForumTopic', data)
+
+    async def delete_forum_topic(
+            self,
+            chat_id: Union[int, str],
+            message_thread_id: int
+    ) -> bool:
+        """
+        Deletes a forum topic.
+        
+        Args:
+            chat_id: Target chat ID
+            message_thread_id: Thread ID
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#deleteforumtopic
+        """
+        data = {
+            'chat_id': chat_id,
+            'message_thread_id': message_thread_id
+        }
+        return await self._request('deleteForumTopic', data)
+
+    async def unpin_all_forum_topic_messages(
+            self,
+            chat_id: Union[int, str],
+            message_thread_id: int
+    ) -> bool:
+        """
+        Unpins all messages in a forum topic.
+        
+        Args:
+            chat_id: Target chat ID
+            message_thread_id: Thread ID
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#unpinallforumtopicmessages
+        """
+        data = {
+            'chat_id': chat_id,
+            'message_thread_id': message_thread_id
+        }
+        return await self._request('unpinAllForumTopicMessages', data)
+
+    async def edit_general_forum_topic(
+            self,
+            chat_id: Union[int, str],
+            name: str
+    ) -> bool:
+        """
+        Edits the General forum topic.
+        
+        Args:
+            chat_id: Target chat ID
+            name: New name (1-128 chars)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#editgeneralforumtopic
+        """
+        data = {
+            'chat_id': chat_id,
+            'name': name
+        }
+        return await self._request('editGeneralForumTopic', data)
+
+    async def close_general_forum_topic(
+            self,
+            chat_id: Union[int, str]
+    ) -> bool:
+        """Closes the General forum topic."""
+        return await self._request('closeGeneralForumTopic', {'chat_id': chat_id})
+
+    async def reopen_general_forum_topic(
+            self,
+            chat_id: Union[int, str]
+    ) -> bool:
+        """Reopens the General forum topic."""
+        return await self._request('reopenGeneralForumTopic', {'chat_id': chat_id})
+
+    async def hide_general_forum_topic(
+            self,
+            chat_id: Union[int, str]
+    ) -> bool:
+        """Hides the General forum topic."""
+        return await self._request('hideGeneralForumTopic', {'chat_id': chat_id})
+
+    async def unhide_general_forum_topic(
+            self,
+            chat_id: Union[int, str]
+    ) -> bool:
+        """Unhides the General forum topic."""
+        return await self._request('unhideGeneralForumTopic', {'chat_id': chat_id})
+
+    async def unpin_all_general_forum_topic_messages(
+            self,
+            chat_id: Union[int, str]
+    ) -> bool:
+        """Unpins all messages in the General forum topic."""
+        return await self._request('unpinAllGeneralForumTopicMessages', {'chat_id': chat_id})
+
+    # ==================== Bot Menu API ====================
+
+    async def set_chat_menu_button(
+            self,
+            chat_id: Optional[Union[int, str]] = None,
+            menu_button: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Sets the menu button for a chat or default.
+        
+        Args:
+            chat_id: Target chat ID (optional for default)
+            menu_button: MenuButton dict (commands, web_app, or default)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setchatmenubutton
+        """
+        data = {}
+        if chat_id:
+            data['chat_id'] = chat_id
+        if menu_button:
+            data['menu_button'] = menu_button
+        return await self._request('setChatMenuButton', data)
+
+    async def get_chat_menu_button(
+            self,
+            chat_id: Optional[Union[int, str]] = None
+    ) -> Dict:
+        """
+        Gets the menu button for a chat or default.
+        
+        Args:
+            chat_id: Target chat ID (optional for default)
+            
+        Returns:
+            MenuButton object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getchatmenubutton
+        """
+        data = {}
+        if chat_id:
+            data['chat_id'] = chat_id
+        return await self._request('getChatMenuButton', data)
+
+    # ==================== Sticker API ====================
+
+    async def send_sticker(
+            self,
+            chat_id: Union[int, str],
+            sticker: Union[str, Any],
+            emoji: Optional[str] = None,
+            disable_notification: bool = False,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Sends a sticker.
+        
+        Args:
+            chat_id: Target chat ID
+            sticker: File ID, file path, or file object
+            emoji: Emoji associated with sticker
+            disable_notification: Silent send
+            reply_to_message_id: Reply to message ID
+            reply_markup: Reply markup
+            
+        Returns:
+            Message object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#sendsticker
+        """
+        data = {
+            'chat_id': chat_id,
+            'sticker': sticker,
+            'emoji': emoji,
+            'disable_notification': disable_notification,
+            'reply_to_message_id': reply_to_message_id,
+            'reply_markup': _convert_markup(reply_markup)
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        
+        # Handle file upload
+        files = None
+        if isinstance(sticker, str) and not sticker.startswith(('http', 'file://')) and len(sticker) < 200:
+            # Likely a file_id, no upload needed
+            pass
+        elif isinstance(sticker, str) and sticker.startswith('file://'):
+            files = {'sticker': open(sticker[7:], 'rb')}
+            data['sticker'] = 'sticker_file'
+        
+        result = await self._request('sendSticker', data, files)
+        
+        if files:
+            files['sticker'].close()
+        
+        return result
+
+    async def get_sticker_set(
+            self,
+            name: str
+    ) -> Dict:
+        """
+        Gets a sticker set.
+        
+        Args:
+            name: Sticker set name
+            
+        Returns:
+            StickerSet object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getstickerset
+        """
+        return await self._request('getStickerSet', {'name': name})
+
+    async def upload_sticker_file(
+            self,
+            user_id: int,
+            sticker: Union[str, Any],
+            sticker_format: str = "static"
+    ) -> Dict:
+        """
+        Uploads a sticker file for later use.
+        
+        Args:
+            user_id: User ID
+            sticker: File path or object
+            sticker_format: "static", "animated", or "video"
+            
+        Returns:
+            File object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#uploadstickerfile
+        """
+        data = {
+            'user_id': user_id,
+            'sticker_format': sticker_format
+        }
+        files = None
+        
+        if isinstance(sticker, str) and sticker.startswith('file://'):
+            files = {'sticker': open(sticker[7:], 'rb')}
+            data['sticker'] = 'sticker_file'
+        
+        result = await self._request('uploadStickerFile', data, files)
+        
+        if files:
+            files['sticker'].close()
+        
+        return result
+
+    async def create_new_sticker_set(
+            self,
+            user_id: int,
+            name: str,
+            title: str,
+            stickers: List[Dict[str, Any]],
+            sticker_type: str = "regular",
+            needs_repainting: bool = False
+    ) -> bool:
+        """
+        Creates a new sticker set.
+        
+        Args:
+            user_id: User ID
+            name: Sticker set name
+            title: Sticker set title
+            stickers: List of sticker objects
+            sticker_type: "regular", "mask", or "custom_emoji"
+            needs_repainting: True if masks need repainting
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#createnewstickerset
+        """
+        data = {
+            'user_id': user_id,
+            'name': name,
+            'title': title,
+            'stickers': stickers,
+            'sticker_type': sticker_type,
+            'needs_repainting': needs_repainting
+        }
+        return await self._request('createNewStickerSet', data)
+
+    async def add_sticker_to_set(
+            self,
+            user_id: int,
+            name: str,
+            sticker: Dict[str, Any]
+    ) -> bool:
+        """
+        Adds a sticker to a sticker set.
+        
+        Args:
+            user_id: User ID
+            name: Sticker set name
+            sticker: Sticker object
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#addstickertoset
+        """
+        data = {
+            'user_id': user_id,
+            'name': name,
+            'sticker': sticker
+        }
+        return await self._request('addStickerToSet', data)
+
+    async def set_sticker_position_in_set(
+            self,
+            sticker: str,
+            position: int
+    ) -> bool:
+        """
+        Sets the position of a sticker in its set.
+        
+        Args:
+            sticker: File ID of the sticker
+            position: New position (0-based)
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setstickerpositioninset
+        """
+        data = {
+            'sticker': sticker,
+            'position': position
+        }
+        return await self._request('setStickerPositionInSet', data)
+
+    async def delete_sticker_from_set(
+            self,
+            sticker: str
+    ) -> bool:
+        """
+        Deletes a sticker from its set.
+        
+        Args:
+            sticker: File ID of the sticker
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#deletestickerfromset
+        """
+        return await self._request('deleteStickerFromSet', {'sticker': sticker})
+
+    async def set_sticker_set_thumb(
+            self,
+            name: str,
+            user_id: int,
+            thumb: Optional[str] = None
+    ) -> bool:
+        """
+        Sets the thumbnail of a sticker set.
+        
+        Args:
+            name: Sticker set name
+            user_id: User ID
+            thumb: Thumbnail file path or ID
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setstickersetthumb
+        """
+        data = {
+            'name': name,
+            'user_id': user_id,
+            'thumb': thumb
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('setStickerSetThumb', data)
+
+    async def set_custom_emoji_sticker_set_thumbnail(
+            self,
+            name: str,
+            custom_emoji_id: Optional[str] = None
+    ) -> bool:
+        """
+        Sets the custom emoji sticker set thumbnail.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#setcustomemojistickersetthumbnail
+        """
+        data = {'name': name, 'custom_emoji_id': custom_emoji_id}
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('setCustomEmojiStickerSetThumbnail', data)
+
+    async def delete_sticker_set(self, name: str) -> bool:
+        """
+        Deletes a sticker set.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#deletestickerset
+        """
+        return await self._request('deleteStickerSet', {'name': name})
+
+    # ==================== Reaction API ====================
+
+    async def set_message_reaction(
+            self,
+            chat_id: Union[int, str],
+            message_id: int,
+            reaction: Optional[List[Dict[str, str]]] = None,
+            is_big: bool = False
+    ) -> bool:
+        """
+        Sets reaction on a message.
+        
+        Args:
+            chat_id: Target chat ID
+            message_id: Message ID
+            reaction: List of ReactionType dicts (e.g., {"type": "emoji", "emoji": "👍"})
+            is_big: Show big animation
+            
+        Returns:
+            True on success
+            
+        Documentation:
+            https://core.telegram.org/bots/api#setmessagereaction
+        """
+        data = {
+            'chat_id': chat_id,
+            'message_id': message_id,
+            'reaction': reaction,
+            'is_big': is_big
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('setMessageReaction', data)
+
+    # ==================== Business API ====================
+
+    async def get_business_connection(self, business_connection_id: str) -> Dict:
+        """
+        Gets business connection info.
+        
+        Args:
+            business_connection_id: Business connection ID
+            
+        Returns:
+            BusinessConnection object
+            
+        Documentation:
+            https://core.telegram.org/bots/api#getbusinessconnection
+        """
+        return await self._request('getBusinessConnection', {'business_connection_id': business_connection_id})
+
+    async def edit_user_star_subscription(
+            self,
+            user_id: int,
+            telegram_payment_charge_id: str,
+            is_canceled: bool
+    ) -> bool:
+        """
+        Edits a user's Telegram Star subscription.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#edituserstarsubscription
+        """
+        data = {
+            'user_id': user_id,
+            'telegram_payment_charge_id': telegram_payment_charge_id,
+            'is_canceled': is_canceled
+        }
+        return await self._request('editUserStarSubscription', data)
+
+    async def replace_sticker_in_set(
+            self,
+            user_id: int,
+            name: str,
+            old_sticker: str,
+            sticker: Dict[str, Any]
+    ) -> bool:
+        """
+        Replaces a sticker in a sticker set.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#replacestickerinset
+        """
+        data = {
+            'user_id': user_id,
+            'name': name,
+            'old_sticker': old_sticker,
+            'sticker': sticker
+        }
+        return await self._request('replaceStickerInSet', data)
+
+    async def set_user_emoji_status(
+            self,
+            user_id: int,
+            custom_emoji_id: Optional[str] = None,
+            until_date: Optional[int] = None
+    ) -> bool:
+        """
+        Sets the emoji status for a user (admin only).
+        
+        Documentation:
+            https://core.telegram.org/bots/api#setuseremojistatus
+        """
+        data = {
+            'user_id': user_id,
+            'custom_emoji_id': custom_emoji_id,
+            'until_date': until_date
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('setUserEmojiStatus', data)
+
+    async def get_available_gifts(self) -> List[Dict]:
+        """
+        Gets available gifts.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#getavailablegifts
+        """
+        return await self._request('getAvailableGifts', {})
+
+    async def send_gift(
+            self,
+            user_id: int,
+            gift_id: str,
+            text: Optional[str] = None,
+            pay_for_upgrade: bool = False
+    ) -> bool:
+        """
+        Sends a gift to a user.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#sendgift
+        """
+        data = {
+            'user_id': user_id,
+            'gift_id': gift_id,
+            'text': text,
+            'pay_for_upgrade': pay_for_upgrade
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('sendGift', data)
+
+    async def verify_user(
+            self,
+            user_id: int,
+            custom_description: Optional[str] = None
+    ) -> bool:
+        """
+        Verifies a user (shows checkmark).
+        
+        Documentation:
+            https://core.telegram.org/bots/api#verifyuser
+        """
+        data = {
+            'user_id': user_id,
+            'custom_description': custom_description
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('verifyUser', data)
+
+    async def verify_chat(
+            self,
+            chat_id: Union[int, str],
+            custom_description: Optional[str] = None
+    ) -> bool:
+        """
+        Verifies a chat (shows checkmark).
+        
+        Documentation:
+            https://core.telegram.org/bots/api#verifychat
+        """
+        data = {
+            'chat_id': chat_id,
+            'custom_description': custom_description
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await self._request('verifyChat', data)
+
+    async def remove_user_verification(
+            self,
+            user_id: int
+    ) -> bool:
+        """
+        Removes verification from a user.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#removeuserverification
+        """
+        return await self._request('removeUserVerification', {'user_id': user_id})
+
+    async def remove_chat_verification(
+            self,
+            chat_id: Union[int, str]
+    ) -> bool:
+        """
+        Removes verification from a chat.
+        
+        Documentation:
+            https://core.telegram.org/bots/api#removechatverification
+        """
+        return await self._request('removeChatVerification', {'chat_id': chat_id})

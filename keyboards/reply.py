@@ -1,20 +1,35 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 
 
 class ReplyKeyboardButton:
+    """
+    Кнопка reply клавиатуры (KeyboardButton в API Telegram)
+    
+    API 9.4+: поддерживает стилизацию (цвет) кнопки через параметр style
+    """
+    
+    # Допустимые стили (цвета) для кнопок - API 9.4+
+    STYLE_PRIMARY = "primary"    # Синий цвет
+    STYLE_SUCCESS = "success"    # Зеленый цвет
+    STYLE_DANGER = "danger"      # Красный цвет
+    
     def __init__(
             self,
             text: str,
             request_contact: bool = False,
             request_location: bool = False,
             request_poll: Optional[Dict] = None,
-            web_app: Optional[Dict] = None
+            web_app: Optional[Dict] = None,
+            icon_custom_emoji_id: Optional[str] = None,  # API 9.5 - custom emoji icon for BottomButton
+            style: Optional[Literal["primary", "success", "danger"]] = None  # API 9.4+ - цвет кнопки
     ):
         self.text = text
         self.request_contact = request_contact
         self.request_location = request_location
         self.request_poll = request_poll
         self.web_app = web_app
+        self.icon_custom_emoji_id = icon_custom_emoji_id
+        self.style = style  # Стиль (цвет) кнопки: primary/success/danger
 
     def to_dict(self) -> Dict[str, Any]:
         data = {'text': self.text}
@@ -26,6 +41,10 @@ class ReplyKeyboardButton:
             data['request_poll'] = self.request_poll
         if self.web_app:
             data['web_app'] = self.web_app
+        if self.icon_custom_emoji_id:
+            data['icon_custom_emoji_id'] = self.icon_custom_emoji_id  # API 9.5
+        if self.style:
+            data['style'] = self.style  # API 9.4+ - цвет кнопки
         return data
 
 
