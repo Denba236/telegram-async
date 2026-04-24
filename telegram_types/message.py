@@ -1,22 +1,25 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 from datetime import datetime
 
 
 @dataclass
 class MessageEntity:
-    """Entity in a message (e.g., bold, italic, mention)"""
+    """
+    Entity in a message (e.g., bold, italic, mention, date_time).
+    
+    API 9.6: added 'date_time' type.
+    """
     type: str
     offset: int
     length: int
     url: Optional[str] = None
-    user: Optional['User'] = None  # Reference as string
+    user: Optional['User'] = None
     language: Optional[str] = None
     custom_emoji_id: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'MessageEntity':
-        # Import inside method to avoid circular dependency
         from .user import User
 
         return cls(
@@ -29,6 +32,22 @@ class MessageEntity:
             custom_emoji_id=data.get('custom_emoji_id')
         )
 
+    def to_dict(self) -> Dict:
+        data = {
+            'type': self.type,
+            'offset': self.offset,
+            'length': self.length
+        }
+        if self.url is not None:
+            data['url'] = self.url
+        if self.user is not None:
+            data['user'] = self.user if isinstance(self.user, dict) else self.user.to_dict() if hasattr(self.user, 'to_dict') else self.user
+        if self.language is not None:
+            data['language'] = self.language
+        if self.custom_emoji_id is not None:
+            data['custom_emoji_id'] = self.custom_emoji_id
+        return data
+
 
 @dataclass
 class MessageAutoDeleteTimerChanged:
@@ -40,6 +59,66 @@ class MessageAutoDeleteTimerChanged:
         return cls(
             message_auto_delete_time=data['message_auto_delete_time']
         )
+
+
+@dataclass
+class ReplyParameters:
+    """
+    Describes reply parameters for messages.
+    
+    API 9.6: added poll_option_id field.
+    """
+    message_id: int
+    chat_id: Optional[Union[int, str]] = None
+    allow_sending_without_reply: Optional[bool] = None
+    quote: Optional[str] = None
+    quote_parse_mode: Optional[str] = None
+    quote_entities: Optional[List['MessageEntity']] = None
+    chat_instance: Optional[str] = None
+    bot_username: Optional[str] = None
+    referrer: Optional[str] = None
+    direct_reply_info: Optional[str] = None  # API 9.6
+    poll_option_id: Optional[str] = None  # API 9.6 - reply to specific poll option
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'ReplyParameters':
+        return cls(
+            message_id=data['message_id'],
+            chat_id=data.get('chat_id'),
+            allow_sending_without_reply=data.get('allow_sending_without_reply'),
+            quote=data.get('quote'),
+            quote_parse_mode=data.get('quote_parse_mode'),
+            quote_entities=[MessageEntity.from_dict(e) for e in data['quote_entities']] if data.get('quote_entities') else None,
+            chat_instance=data.get('chat_instance'),
+            bot_username=data.get('bot_username'),
+            referrer=data.get('referrer'),
+            direct_reply_info=data.get('direct_reply_info'),
+            poll_option_id=data.get('poll_option_id')
+        )
+
+    def to_dict(self) -> Dict:
+        data = {'message_id': self.message_id}
+        if self.chat_id is not None:
+            data['chat_id'] = self.chat_id
+        if self.allow_sending_without_reply is not None:
+            data['allow_sending_without_reply'] = self.allow_sending_without_reply
+        if self.quote is not None:
+            data['quote'] = self.quote
+        if self.quote_parse_mode is not None:
+            data['quote_parse_mode'] = self.quote_parse_mode
+        if self.quote_entities is not None:
+            data['quote_entities'] = [e.to_dict() if hasattr(e, 'to_dict') else e for e in self.quote_entities]
+        if self.chat_instance is not None:
+            data['chat_instance'] = self.chat_instance
+        if self.bot_username is not None:
+            data['bot_username'] = self.bot_username
+        if self.referrer is not None:
+            data['referrer'] = self.referrer
+        if self.direct_reply_info is not None:
+            data['direct_reply_info'] = self.direct_reply_info
+        if self.poll_option_id is not None:
+            data['poll_option_id'] = self.poll_option_id
+        return data
 
 
 @dataclass
@@ -107,6 +186,13 @@ class Message:
     video_chat_participants_invited: Optional['VideoChatParticipantsInvited'] = None
     web_app_data: Optional['WebAppData'] = None
     reply_markup: Optional['InlineKeyboardMarkup'] = None
+    sender_tag: Optional[str] = None  # API 9.5 - tag użytkownika który wysłał wiadomość
+    # API 9.6
+    managed_bot_created: Optional['ManagedBotCreated'] = None
+    poll_option_added: Optional['PollOptionAdded'] = None
+    poll_option_deleted: Optional['PollOptionDeleted'] = None
+    reply_to_poll_option_id: Optional[int] = None
+    paid_media: Optional['PaidMediaInfo'] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Message':
@@ -122,6 +208,9 @@ class Message:
             VideoChatParticipantsInvited
         )
         from .web_app import WebAppData
+        from .new_types import (
+            ManagedBotCreated, PollOptionAdded, PollOptionDeleted, PaidMediaInfo
+        )
 
         return cls(
             message_id=data['message_id'],
@@ -193,5 +282,12 @@ class Message:
             video_chat_ended=VideoChatEnded.from_dict(data['video_chat_ended']) if 'video_chat_ended' in data else None,
             video_chat_participants_invited=VideoChatParticipantsInvited.from_dict(
                 data['video_chat_participants_invited']) if 'video_chat_participants_invited' in data else None,
-            web_app_data=WebAppData.from_dict(data['web_app_data']) if 'web_app_data' in data else None
+            web_app_data=WebAppData.from_dict(data['web_app_data']) if 'web_app_data' in data else None,
+            sender_tag=data.get('sender_tag'),  # API 9.5
+            # API 9.6
+            managed_bot_created=ManagedBotCreated.from_dict(data['managed_bot_created']) if 'managed_bot_created' in data else None,
+            poll_option_added=PollOptionAdded.from_dict(data['poll_option_added']) if 'poll_option_added' in data else None,
+            poll_option_deleted=PollOptionDeleted.from_dict(data['poll_option_deleted']) if 'poll_option_deleted' in data else None,
+            reply_to_poll_option_id=data.get('reply_to_poll_option_id'),
+            paid_media=PaidMediaInfo.from_dict(data['paid_media']) if 'paid_media' in data else None
         )

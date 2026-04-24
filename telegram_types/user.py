@@ -14,6 +14,8 @@ class User:
     can_join_groups: Optional[bool] = None
     can_read_all_group_messages: Optional[bool] = None
     supports_inline_queries: Optional[bool] = None
+    # API 9.6
+    can_manage_bots: Optional[bool] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'User':
@@ -26,7 +28,8 @@ class User:
             language_code=data.get('language_code'),
             can_join_groups=data.get('can_join_groups'),
             can_read_all_group_messages=data.get('can_read_all_group_messages'),
-            supports_inline_queries=data.get('supports_inline_queries')
+            supports_inline_queries=data.get('supports_inline_queries'),
+            can_manage_bots=data.get('can_manage_bots')
         )
 
 

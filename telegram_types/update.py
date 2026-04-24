@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 from .user import User
 from .message import Message
@@ -28,6 +28,13 @@ class Update:
     my_chat_member: Optional[ChatMemberUpdated] = None
     chat_member: Optional[ChatMemberUpdated] = None
     chat_join_request: Optional[ChatJoinRequest] = None
+    # API 9.6
+    managed_bot: Optional[Any] = None  # ManagedBotUpdated
+    message_reaction: Optional[Any] = None
+    message_reaction_count: Optional[Any] = None
+    chat_boost: Optional[Any] = None
+    removed_chat_boost: Optional[Any] = None
+    purchased_paid_media: Optional[Any] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Update':
@@ -50,5 +57,12 @@ class Update:
             my_chat_member=ChatMemberUpdated.from_dict(data['my_chat_member']) if 'my_chat_member' in data else None,
             chat_member=ChatMemberUpdated.from_dict(data['chat_member']) if 'chat_member' in data else None,
             chat_join_request=ChatJoinRequest.from_dict(
-                data['chat_join_request']) if 'chat_join_request' in data else None
+                data['chat_join_request']) if 'chat_join_request' in data else None,
+            # API 9.6
+            managed_bot=data.get('managed_bot'),
+            message_reaction=data.get('message_reaction'),
+            message_reaction_count=data.get('message_reaction_count'),
+            chat_boost=data.get('chat_boost'),
+            removed_chat_boost=data.get('removed_chat_boost'),
+            purchased_paid_media=data.get('purchased_paid_media')
         )

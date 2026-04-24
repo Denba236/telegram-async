@@ -1,6 +1,6 @@
 from .base import File
 from .user import User, Chat, ChatPhoto, ChatPermissions, ChatLocation
-from .message import Message, MessageEntity, MessageAutoDeleteTimerChanged
+from .message import Message, MessageEntity, MessageAutoDeleteTimerChanged, ReplyParameters
 from .media import (
     PhotoSize, Animation, Audio, Document, Video, VideoNote, Voice,
     Sticker, MaskPosition
@@ -24,6 +24,25 @@ from .web_app import WebAppData
 from .proximity import ProximityAlertTriggered
 from .poll_answer import PollAnswer
 from .update import Update
+from .new_types import (
+    BotCommand, BotCommandScope,
+    LabeledPrice, ShippingOption, StarTransaction, StarTransactions,
+    GameHighScore,
+    ForumTopic, ForumTopicCreated, ForumTopicClosed, ForumTopicEdited,
+    ForumTopicReopened, GeneralForumTopicHidden, GeneralForumTopicUnhidden,
+    MenuButton,
+    StickerSet, ReactionType, ReactionCount, MessageReactionUpdated,
+    MessageReactionCountUpdated,
+    BusinessConnection, BusinessMessagesDeleted, BusinessIntro,
+    Gift, Gifts, ChatAvailableReactions,
+    # API 9.6
+    ManagedBotCreated, ManagedBotUpdated, ManagedBotInfo,
+    KeyboardButtonRequestManagedBot, PreparedKeyboardButton,
+    PollOptionExtended, PollExtended, PollOptionAdded, PollOptionDeleted,
+    PollAnswerExtended,
+    PaidMedia, PaidMediaPhoto, PaidMediaVideo, PaidMediaInfo,
+    ChatInviteLink, ChatPermissions, ChatAdministratorRights
+)
 
 __all__ = [
     # Base
@@ -33,7 +52,7 @@ __all__ = [
     'User', 'Chat', 'ChatPhoto', 'ChatPermissions', 'ChatLocation',
 
     # Message
-    'Message', 'MessageEntity', 'MessageAutoDeleteTimerChanged',
+    'Message', 'MessageEntity', 'MessageAutoDeleteTimerChanged', 'ReplyParameters',
 
     # Media
     'PhotoSize', 'Animation', 'Audio', 'Document', 'Video',
@@ -70,5 +89,25 @@ __all__ = [
     'PollAnswer',
 
     # Update
-    'Update'
+    'Update',
+
+    # New API 9.5+ types
+    'BotCommand', 'BotCommandScope',
+    'LabeledPrice', 'ShippingOption', 'StarTransaction', 'StarTransactions',
+    'GameHighScore',
+    'ForumTopic', 'ForumTopicCreated', 'ForumTopicClosed', 'ForumTopicEdited',
+    'ForumTopicReopened', 'GeneralForumTopicHidden', 'GeneralForumTopicUnhidden',
+    'MenuButton',
+    'StickerSet', 'ReactionType', 'ReactionCount', 'MessageReactionUpdated',
+    'MessageReactionCountUpdated',
+    'BusinessConnection', 'BusinessMessagesDeleted', 'BusinessIntro',
+    'Gift', 'Gifts', 'ChatAvailableReactions',
+    
+    # API 9.6
+    'ManagedBotCreated', 'ManagedBotUpdated', 'ManagedBotInfo',
+    'KeyboardButtonRequestManagedBot', 'PreparedKeyboardButton',
+    'PollOptionExtended', 'PollExtended', 'PollOptionAdded', 'PollOptionDeleted',
+    'PollAnswerExtended',
+    'PaidMedia', 'PaidMediaPhoto', 'PaidMediaVideo', 'PaidMediaInfo',
+    'ChatInviteLink', 'ChatAdministratorRights'
 ]

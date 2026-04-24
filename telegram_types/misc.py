@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 from .user import User
 from .media import PhotoSize, Animation
@@ -92,12 +92,21 @@ class PollOption:
     """Poll option"""
     text: str
     voter_count: int
+    persistent_id: Optional[str] = None  # API 9.6
+    added_by_user: Optional[User] = None  # API 9.6
+    added_by_chat: Optional[Any] = None  # API 9.6 (Chat)
+    addition_date: Optional[int] = None  # API 9.6
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'PollOption':
+        from .user import User, Chat
         return cls(
             text=data['text'],
-            voter_count=data['voter_count']
+            voter_count=data['voter_count'],
+            persistent_id=data.get('persistent_id'),
+            added_by_user=User.from_dict(data['added_by_user']) if 'added_by_user' in data else None,
+            added_by_chat=Chat.from_dict(data['added_by_chat']) if 'added_by_chat' in data else None,
+            addition_date=data.get('addition_date')
         )
 
 
@@ -112,11 +121,19 @@ class Poll:
     is_anonymous: bool
     type: str  # 'regular', 'quiz'
     allows_multiple_answers: bool
-    correct_option_id: Optional[int] = None
+    correct_option_id: Optional[int] = None  # Deprecated in API 9.6
+    correct_option_ids: Optional[List[int]] = None  # API 9.6
     explanation: Optional[str] = None
     explanation_entities: Optional[List[MessageEntity]] = None
     open_period: Optional[int] = None
     close_date: Optional[int] = None
+    # API 9.6
+    allows_revoting: Optional[bool] = None
+    description: Optional[str] = None
+    description_entities: Optional[List[MessageEntity]] = None
+    shuffle_options: Optional[bool] = None
+    allow_adding_options: Optional[bool] = None
+    hide_results_until_closes: Optional[bool] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Poll':
@@ -130,11 +147,19 @@ class Poll:
             type=data['type'],
             allows_multiple_answers=data['allows_multiple_answers'],
             correct_option_id=data.get('correct_option_id'),
+            correct_option_ids=data.get('correct_option_ids'),
             explanation=data.get('explanation'),
             explanation_entities=[MessageEntity.from_dict(e) for e in
                                   data['explanation_entities']] if 'explanation_entities' in data else None,
             open_period=data.get('open_period'),
-            close_date=data.get('close_date')
+            close_date=data.get('close_date'),
+            allows_revoting=data.get('allows_revoting'),
+            description=data.get('description'),
+            description_entities=[MessageEntity.from_dict(e) for e in
+                                  data['description_entities']] if 'description_entities' in data else None,
+            shuffle_options=data.get('shuffle_options'),
+            allow_adding_options=data.get('allow_adding_options'),
+            hide_results_until_closes=data.get('hide_results_until_closes')
         )
 
 

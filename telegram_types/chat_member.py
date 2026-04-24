@@ -30,6 +30,8 @@ class ChatMember:
     can_send_other_messages: Optional[bool] = None
     can_add_web_page_previews: Optional[bool] = None
     until_date: Optional[datetime] = None
+    tag: Optional[str] = None  # API 9.5 - tag członka czatu
+    can_edit_tag: Optional[bool] = None  # API 9.5 - czy może edytować własny tag
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'ChatMember':
@@ -55,7 +57,9 @@ class ChatMember:
             can_send_polls=data.get('can_send_polls'),
             can_send_other_messages=data.get('can_send_other_messages'),
             can_add_web_page_previews=data.get('can_add_web_page_previews'),
-            until_date=datetime.fromtimestamp(data['until_date']) if data.get('until_date') else None
+            until_date=datetime.fromtimestamp(data['until_date']) if data.get('until_date') else None,
+            tag=data.get('tag'),  # API 9.5
+            can_edit_tag=data.get('can_edit_tag')  # API 9.5
         )
 
 
