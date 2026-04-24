@@ -15,17 +15,28 @@ class Dispatcher(Router):
     """
     Main dispatcher for handling updates, middleware, and FSM states.
     Inspired by the architecture of aiogram 3.x.
+    
+    Args:
+        bot: Bot instance (optional, for convenience)
+        storage: FSM storage instance (optional, defaults to MemoryStorage)
     """
 
-    def __init__(self, storage: Optional[Any] = None):
+    def __init__(self, bot: Optional[TelegramClient] = None, storage: Optional[Any] = None):
         super().__init__(name="dispatcher")
+        self.bot = bot  # Store bot instance for convenience
         self.middleware_manager = MiddlewareManager()
         self._startup_hooks: List[Callable] = []
         self._shutdown_hooks: List[Callable] = []
         self._running = False
 
         # State storage (FSM) - defaults to MemoryStorage
-        self.storage = storage or MemoryStorage()
+        # Make sure we don't accidentally store the Bot object as storage
+        if storage is not None and hasattr(storage, 'get_state'):
+            # It's a valid storage object
+            self.storage = storage
+        else:
+            # Use MemoryStorage by default
+            self.storage = storage if hasattr(storage, 'get_state') else MemoryStorage()
 
     def middleware(self):
         """Decorator to register middleware"""
@@ -116,3 +127,17 @@ class Dispatcher(Router):
                 await hook()
             await client.close()
             print("\n✅ Bot has been safely shut down.")
+
+    def run_polling(self, bot: TelegramClient, skip_updates: bool = True):
+        """
+        Synchronous wrapper to start polling (convenience method)
+        
+        Args:
+            bot: Bot instance to use for polling
+            skip_updates: Whether to skip pending updates on startup
+        """
+        import asyncio
+        try:
+            asyncio.run(self.start_polling(bot, skip_updates))
+        except KeyboardInterrupt:
+            print("\n✅ Bot stopped by user")

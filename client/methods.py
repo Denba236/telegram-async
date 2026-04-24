@@ -466,36 +466,100 @@ class TelegramMethods:
             question: str,
             options: List[str],
             is_anonymous: bool = True,
-            type: str = 'regular',
+            poll_type: str = 'regular',
             allows_multiple_answers: bool = False,
-            correct_option_id: Optional[int] = None,
+            # API 9.6 - replaced correct_option_id with correct_option_ids
+            correct_option_id: Optional[int] = None,  # Deprecated, use correct_option_ids
+            correct_option_ids: Optional[List[int]] = None,  # API 9.6
             explanation: Optional[str] = None,
             explanation_parse_mode: Optional[str] = None,
             open_period: Optional[int] = None,
             close_date: Optional[int] = None,
             is_closed: bool = False,
-            reply_markup: Optional[Dict] = None,
             disable_notification: bool = False,
-            reply_to_message_id: Optional[int] = None
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[Dict] = None,
+            # API 9.6 new parameters
+            allows_revoting: bool = False,
+            description: Optional[str] = None,
+            description_parse_mode: Optional[str] = None,
+            shuffle_options: bool = False,
+            allow_adding_options: bool = False,
+            hide_results_until_closes: bool = False
     ) -> Dict:
-        """Wysyła ankietę"""
+        """
+        Sends a poll.
+
+        Args:
+            chat_id: Target chat ID
+            question: Poll question
+            options: List of answer options
+            is_anonymous: True if users' votes are anonymous
+            poll_type: 'quiz' or 'regular'
+            allows_multiple_answers: True for multiple answers (quiz only)
+            correct_option_id: Deprecated, use correct_option_ids
+            correct_option_ids: List of correct option IDs (API 9.6, quiz mode)
+            explanation: Text shown when user selects answer (quiz)
+            explanation_parse_mode: Parse mode for explanation
+            open_period: Time in seconds until poll closes
+            close_date: Timestamp when poll closes
+            is_closed: True if poll is closed
+            disable_notification: Sends silently
+            reply_to_message_id: Message to reply to
+            reply_markup: Reply markup
+            allows_revoting: Allow changing vote (API 9.6)
+            description: Poll description (API 9.6)
+            description_parse_mode: Parse mode for description (API 9.6)
+            shuffle_options: Randomize answer order (API 9.6)
+            allow_adding_options: Allow adding new options (API 9.6)
+            hide_results_until_closes: Hide results until poll closes (API 9.6)
+
+        Returns:
+            Poll object as dict
+
+        Documentation:
+            https://core.telegram.org/bots/api#sendpoll
+        """
         data = {
             'chat_id': chat_id,
             'question': question,
-            'options': json.dumps(options),
+            'options': json.dumps(options),  # IMPORTANT: must be JSON-serialized
             'is_anonymous': is_anonymous,
-            'type': type,
+            'type': poll_type,
             'allows_multiple_answers': allows_multiple_answers,
-            'correct_option_id': correct_option_id,
-            'explanation': explanation,
-            'explanation_parse_mode': explanation_parse_mode,
-            'open_period': open_period,
-            'close_date': close_date,
+            'allows_revoting': allows_revoting,
+            'shuffle_options': shuffle_options,
+            'allow_adding_options': allow_adding_options,
+            'hide_results_until_closes': hide_results_until_closes,
             'is_closed': is_closed,
-            'reply_markup': _convert_markup(reply_markup),
-            'disable_notification': disable_notification,
-            'reply_to_message_id': reply_to_message_id
+            'disable_notification': disable_notification
         }
+
+        # API 9.6: prefer correct_option_ids over correct_option_id
+        if correct_option_ids is not None:
+            data['correct_option_ids'] = correct_option_ids
+        elif correct_option_id is not None:
+            data['correct_option_id'] = correct_option_id
+
+        # API 9.6: description
+        if description:
+            data['description'] = description
+            if description_parse_mode:
+                data['description_parse_mode'] = description_parse_mode
+
+        if explanation:
+            data['explanation'] = explanation
+            if explanation_parse_mode:
+                data['explanation_parse_mode'] = explanation_parse_mode
+        if open_period:
+            data['open_period'] = open_period
+        if close_date:
+            data['close_date'] = close_date
+        if reply_to_message_id:
+            data['reply_to_message_id'] = reply_to_message_id
+        if reply_markup:
+            data['reply_markup'] = _convert_markup(reply_markup)
+
         return await self._request('sendPoll', data)
 
     async def send_dice(
@@ -1343,10 +1407,10 @@ class TelegramMethods:
     ) -> Dict:
         """
         Gets Telegram Star transactions.
-        
+
         Returns:
             StarTransactions object
-            
+
         Documentation:
             https://core.telegram.org/bots/api#getstartransactions
         """
@@ -1356,6 +1420,19 @@ class TelegramMethods:
         if limit:
             data['limit'] = limit
         return await self._request('getStarTransactions', data)
+
+    async def get_my_star_balance(self) -> int:
+        """
+        Returns the current Telegram Star balance of the bot.
+
+        Returns:
+            Current balance in Telegram Stars
+
+        Documentation:
+            https://core.telegram.org/bots/api#getmystarbalance
+        """
+        result = await self._request('getMyStarBalance')
+        return result.get('balance', 0)
 
     async def refund_star_payment(
             self,
@@ -2216,8 +2293,629 @@ class TelegramMethods:
     ) -> bool:
         """
         Removes verification from a chat.
-        
+
         Documentation:
             https://core.telegram.org/bots/api#removechatverification
         """
         return await self._request('removeChatVerification', {'chat_id': chat_id})
+
+    # ==================== API 9.6: Managed Bots ====================
+
+    async def get_managed_bot_token(
+            self,
+            managed_bot_id: str
+    ) -> Dict[str, str]:
+        """
+        Gets the token of a managed bot.
+
+        Args:
+            managed_bot_id: Unique identifier of the managed bot
+
+        Returns:
+            Dict with 'token' field
+
+        Documentation:
+            https://core.telegram.org/bots/api#getmanagedbottoken
+        """
+        return await self._request('getManagedBotToken', {'managed_bot_id': managed_bot_id})
+
+    async def replace_managed_bot_token(
+            self,
+            managed_bot_id: str,
+            name: Optional[str] = None
+    ) -> Dict[str, str]:
+        """
+        Replaces the token of a managed bot.
+
+        Args:
+            managed_bot_id: Unique identifier of the managed bot
+            name: New name for the managed bot (optional)
+
+        Returns:
+            Dict with new 'token' field
+
+        Documentation:
+            https://core.telegram.org/bots/api#replacemanagedbottoken
+        """
+        data = {'managed_bot_id': managed_bot_id}
+        if name:
+            data['name'] = name
+        return await self._request('replaceManagedBotToken', data)
+
+    async def get_managed_bots(
+            self,
+            offset: Optional[int] = None,
+            limit: Optional[int] = 100
+    ) -> List[Dict]:
+        """
+        Gets a list of bots managed by the current bot.
+
+        Args:
+            offset: Identifier of the first bot to be returned
+            limit: Limits the number of bots to be retrieved (1-100)
+
+        Returns:
+            Array of User objects
+
+        Documentation:
+            https://core.telegram.org/bots/api#getmanagedbots
+        """
+        data = {}
+        if offset:
+            data['offset'] = offset
+        if limit:
+            data['limit'] = limit
+        return await self._request('getManagedBots', data)
+
+    async def save_prepared_keyboard_button(
+            self,
+            button: Dict[str, Any]
+    ) -> Dict[str, str]:
+        """
+        Saves a prepared keyboard button for Mini Apps.
+
+        Args:
+            button: PreparedKeyboardButton object or dict
+
+        Returns:
+            Dict with button 'id'
+
+        Documentation:
+            https://core.telegram.org/bots/api#savepreparedkeyboardbutton
+        """
+        if hasattr(button, 'to_dict'):
+            button = button.to_dict()
+        return await self._request('savePreparedKeyboardButton', button)
+
+    # ==================== MISSING Methods from Earlier APIs ====================
+
+    async def copy_message(
+            self,
+            chat_id: Union[int, str],
+            from_chat_id: Union[int, str],
+            message_id: int,
+            caption: Optional[str] = None,
+            caption_parse_mode: Optional[str] = None,
+            disable_notification: bool = False,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[Dict] = None,
+            show_caption_above_media: Optional[bool] = None
+    ) -> Dict:
+        """
+        Copies a message without forwarding.
+
+        Args:
+            chat_id: Target chat
+            from_chat_id: Source chat
+            message_id: Message ID to copy
+            caption: New caption for the copy
+            caption_parse_mode: Parse mode for caption
+            disable_notification: Send silently
+            reply_to_message_id: Reply to this message
+            reply_markup: Reply markup
+            show_caption_above_media: Show caption above media
+
+        Returns:
+            MessageId of the copied message
+
+        Documentation:
+            https://core.telegram.org/bots/api#copymessage
+        """
+        data = {
+            'chat_id': chat_id,
+            'from_chat_id': from_chat_id,
+            'message_id': message_id,
+            'disable_notification': disable_notification
+        }
+        if caption:
+            data['caption'] = caption
+            if caption_parse_mode:
+                data['caption_parse_mode'] = caption_parse_mode
+        if reply_to_message_id:
+            data['reply_to_message_id'] = reply_to_message_id
+        if reply_markup:
+            data['reply_markup'] = _convert_markup(reply_markup)
+        if show_caption_above_media is not None:
+            data['show_caption_above_media'] = show_caption_above_media
+        return await self._request('copyMessage', data)
+
+    # ==================== Invite Link Management ====================
+
+    async def create_chat_invite_link(
+            self,
+            chat_id: Union[int, str],
+            name: Optional[str] = None,
+            expire_date: Optional[int] = None,
+            member_limit: Optional[int] = None,
+            creates_join_request: bool = False
+    ) -> Dict:
+        """
+        Creates an invite link for a chat.
+
+        Args:
+            chat_id: Target chat
+            name: Link name (optional)
+            expire_date: Expiration timestamp
+            member_limit: Max users who can join
+            creates_join_request: True for join requests instead of direct join
+
+        Returns:
+            ChatInviteLink object
+
+        Documentation:
+            https://core.telegram.org/bots/api#createchatinvitelink
+        """
+        data = {
+            'chat_id': chat_id,
+            'creates_join_request': creates_join_request
+        }
+        if name:
+            data['name'] = name
+        if expire_date:
+            data['expire_date'] = expire_date
+        if member_limit:
+            data['member_limit'] = member_limit
+        return await self._request('createChatInviteLink', data)
+
+    async def edit_chat_invite_link(
+            self,
+            chat_id: Union[int, str],
+            invite_link: str,
+            name: Optional[str] = None,
+            expire_date: Optional[int] = None,
+            member_limit: Optional[int] = None,
+            creates_join_request: bool = False
+    ) -> Dict:
+        """
+        Edits a non-revoked invite link.
+
+        Args:
+            chat_id: Target chat
+            invite_link: The link to edit
+            name: New link name
+            expire_date: New expiration timestamp
+            member_limit: New member limit
+            creates_join_request: True for join requests
+
+        Returns:
+            Updated ChatInviteLink
+
+        Documentation:
+            https://core.telegram.org/bots/api#editchatinvitelink
+        """
+        data = {
+            'chat_id': chat_id,
+            'invite_link': invite_link,
+            'creates_join_request': creates_join_request
+        }
+        if name:
+            data['name'] = name
+        if expire_date:
+            data['expire_date'] = expire_date
+        if member_limit:
+            data['member_limit'] = member_limit
+        return await self._request('editChatInviteLink', data)
+
+    async def revoke_chat_invite_link(
+            self,
+            chat_id: Union[int, str],
+            invite_link: str
+    ) -> Dict:
+        """
+        Revokes an invite link.
+
+        Args:
+            chat_id: Target chat
+            invite_link: The link to revoke
+
+        Returns:
+            Revoked ChatInviteLink
+
+        Documentation:
+            https://core.telegram.org/bots/api#revokechatinvitelink
+        """
+        return await self._request('revokeChatInviteLink', {
+            'chat_id': chat_id,
+            'invite_link': invite_link
+        })
+
+    # ==================== Pin/Unpin Messages ====================
+
+    async def pin_chat_message(
+            self,
+            chat_id: Union[int, str],
+            message_id: int,
+            disable_notification: bool = False
+    ) -> bool:
+        """
+        Pins a message in a chat.
+
+        Args:
+            chat_id: Target chat
+            message_id: Message to pin
+            disable_notification: Don't send notification
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#pinchatmessage
+        """
+        return await self._request('pinChatMessage', {
+            'chat_id': chat_id,
+            'message_id': message_id,
+            'disable_notification': disable_notification
+        })
+
+    async def unpin_chat_message(
+            self,
+            chat_id: Union[int, str],
+            message_id: Optional[int] = None
+    ) -> bool:
+        """
+        Unpins a message or all messages in a chat.
+
+        Args:
+            chat_id: Target chat
+            message_id: Specific message to unpin (optional)
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#unpinchatmessage
+        """
+        data = {'chat_id': chat_id}
+        if message_id:
+            data['message_id'] = message_id
+        return await self._request('unpinChatMessage', data)
+
+    async def unpin_all_chat_messages(
+            self,
+            chat_id: Union[int, str]
+    ) -> bool:
+        """
+        Unpins all messages in a chat.
+
+        Args:
+            chat_id: Target chat
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#unpinallchatmessages
+        """
+        return await self._request('unpinAllChatMessages', {'chat_id': chat_id})
+
+    # ==================== Chat Join Requests ====================
+
+    async def approve_chat_join_request(
+            self,
+            chat_id: Union[int, str],
+            user_id: int
+    ) -> bool:
+        """
+        Approves a chat join request.
+
+        Args:
+            chat_id: Target chat
+            user_id: User ID to approve
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#approvechatjoinrequest
+        """
+        return await self._request('approveChatJoinRequest', {
+            'chat_id': chat_id,
+            'user_id': user_id
+        })
+
+    async def decline_chat_join_request(
+            self,
+            chat_id: Union[int, str],
+            user_id: int
+    ) -> bool:
+        """
+        Declines a chat join request.
+
+        Args:
+            chat_id: Target chat
+            user_id: User ID to decline
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#declinechatjoinrequest
+        """
+        return await self._request('declineChatJoinRequest', {
+            'chat_id': chat_id,
+            'user_id': user_id
+        })
+
+    # ==================== Chat Permissions ====================
+
+    async def set_chat_permissions(
+            self,
+            chat_id: Union[int, str],
+            permissions: Union[Dict, Any],
+            use_independent_chat_permissions: bool = False
+    ) -> bool:
+        """
+        Sets default chat permissions for all members.
+
+        Args:
+            chat_id: Target chat
+            permissions: ChatPermissions object or dict
+            use_independent_chat_permissions: Allow independent permissions
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#setchatpermissions
+        """
+        if hasattr(permissions, 'to_dict'):
+            permissions = permissions.to_dict()
+        data = {
+            'chat_id': chat_id,
+            'permissions': permissions,
+            'use_independent_chat_permissions': use_independent_chat_permissions
+        }
+        return await self._request('setChatPermissions', data)
+
+    # ==================== Ban/Unban Sender Chat ====================
+
+    async def ban_chat_sender_chat(
+            self,
+            chat_id: Union[int, str],
+            sender_chat_id: int
+    ) -> bool:
+        """
+        Bans a channel/chat in a group or supergroup.
+
+        Args:
+            chat_id: Target chat
+            sender_chat_id: Channel/chat ID to ban
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#banchatsenderchat
+        """
+        return await self._request('banChatSenderChat', {
+            'chat_id': chat_id,
+            'sender_chat_id': sender_chat_id
+        })
+
+    async def unban_chat_sender_chat(
+            self,
+            chat_id: Union[int, str],
+            sender_chat_id: int
+    ) -> bool:
+        """
+        Unbans a channel/chat in a group or supergroup.
+
+        Args:
+            chat_id: Target chat
+            sender_chat_id: Channel/chat ID to unban
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#unbanchatsenderchat
+        """
+        return await self._request('unbanChatSenderChat', {
+            'chat_id': chat_id,
+            'sender_chat_id': sender_chat_id
+        })
+
+    # ==================== Administrator Rights ====================
+
+    async def set_my_default_administrator_rights(
+            self,
+            rights: Optional[Union[Dict, Any]] = None,
+            for_channels: bool = False
+    ) -> bool:
+        """
+        Sets the default administrator rights for the bot.
+
+        Args:
+            rights: ChatAdministratorRights object or dict
+            for_channels: True for channels, False for groups/supergroups
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#setmydefaultadministratorrights
+        """
+        data = {'for_channels': for_channels}
+        if rights:
+            if hasattr(rights, 'to_dict'):
+                rights = rights.to_dict()
+            data['rights'] = rights
+        return await self._request('setMyDefaultAdministratorRights', data)
+
+    async def get_my_default_administrator_rights(
+            self,
+            for_channels: bool = False
+    ) -> Dict:
+        """
+        Gets the default administrator rights for the bot.
+
+        Args:
+            for_channels: True for channels, False for groups/supergroups
+
+        Returns:
+            ChatAdministratorRights object
+
+        Documentation:
+            https://core.telegram.org/bots/api#getmydefaultadministratorrights
+        """
+        return await self._request('getMyDefaultAdministratorRights', {
+            'for_channels': for_channels
+        })
+
+    # ==================== Paid Media ====================
+
+    async def send_paid_media(
+            self,
+            chat_id: Union[int, str],
+            star_count: int,
+            media: List[Dict[str, Any]],
+            caption: Optional[str] = None,
+            caption_parse_mode: Optional[str] = None,
+            show_caption_above_media: bool = False,
+            disable_notification: bool = False,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Sends paid media.
+
+        Args:
+            chat_id: Target chat
+            star_count: Number of Telegram Stars required
+            media: List of InputPaidMedia objects
+            caption: Media caption
+            caption_parse_mode: Parse mode for caption
+            show_caption_above_media: Show caption above media
+            disable_notification: Send silently
+            reply_to_message_id: Reply to this message
+            reply_markup: Reply markup
+
+        Returns:
+            Message object
+
+        Documentation:
+            https://core.telegram.org/bots/api#sendpaidmedia
+        """
+        data = {
+            'chat_id': chat_id,
+            'star_count': star_count,
+            'media': media,
+            'show_caption_above_media': show_caption_above_media,
+            'disable_notification': disable_notification
+        }
+        if caption:
+            data['caption'] = caption
+            if caption_parse_mode:
+                data['caption_parse_mode'] = caption_parse_mode
+        if reply_to_message_id:
+            data['reply_to_message_id'] = reply_to_message_id
+        if reply_markup:
+            data['reply_markup'] = _convert_markup(reply_markup)
+        return await self._request('sendPaidMedia', data)
+
+    # ==================== Forum Topics ====================
+
+    async def get_forum_topic_icon_stickers(self) -> List[Dict]:
+        """
+        Gets custom emoji stickers for forum topics.
+
+        Returns:
+            List of Sticker objects
+
+        Documentation:
+            https://core.telegram.org/bots/api#getforumtopiciconstickers
+        """
+        return await self._request('getForumTopicIconStickers')
+
+    # ==================== Passport ====================
+
+    async def set_passport_data_errors(
+            self,
+            user_id: int,
+            errors: List[Dict[str, Any]]
+    ) -> bool:
+        """
+        Informs the user about errors with passport data.
+
+        Args:
+            user_id: User ID
+            errors: List of PassportElementError objects
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#setpassportdataerrors
+        """
+        return await self._request('setPassportDataErrors', {
+            'user_id': user_id,
+            'errors': errors
+        })
+
+    # ==================== Sticker Sets ====================
+
+    async def set_sticker_set_title(
+            self,
+            name: str,
+            title: str
+    ) -> bool:
+        """
+        Sets the title of a sticker set.
+
+        Args:
+            name: Sticker set name
+            title: New title
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#setstickersettitle
+        """
+        return await self._request('setStickerSetTitle', {
+            'name': name,
+            'title': title
+        })
+
+    async def set_sticker_set_emoji_sticker_format(
+            self,
+            name: str,
+            emoji_sticker_format: str
+    ) -> bool:
+        """
+        Sets the emoji sticker format of a sticker set.
+
+        Args:
+            name: Sticker set name
+            emoji_sticker_format: Format (e.g., 'static', 'animated', 'video')
+
+        Returns:
+            True on success
+
+        Documentation:
+            https://core.telegram.org/bots/api#setstickerformat
+        """
+        return await self._request('setStickerSetEmojiStickerFormat', {
+            'name': name,
+            'emoji_sticker_format': emoji_sticker_format
+        })

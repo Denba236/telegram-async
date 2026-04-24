@@ -100,3 +100,101 @@ class Context:
                 self.message.message_id
             )
         return None
+
+    # ==================== Payment Methods ====================
+
+    @property
+    def shipping_query(self):
+        """Returns shipping query if present"""
+        return self.update.shipping_query
+
+    @property
+    def pre_checkout_query(self):
+        """Returns pre-checkout query if present"""
+        return self.update.pre_checkout_query
+
+    @property
+    def successful_payment(self):
+        """Returns successful payment info if present"""
+        if self.message:
+            return self.message.successful_payment
+        return None
+
+    @property
+    def invoice_payload(self):
+        """Returns invoice payload from pre-checkout query or message"""
+        if self.pre_checkout_query:
+            return self.pre_checkout_query.invoice_payload
+        elif self.successful_payment:
+            return self.successful_payment.invoice_payload
+        return None
+
+    async def answer_shipping_query(self, ok: bool, shipping_options: Optional[list] = None, error_message: Optional[str] = None):
+        """
+        Answers a shipping query
+        
+        Args:
+            ok: True if shipping is possible
+            shipping_options: List of shipping options (required if ok=True)
+            error_message: Error message (required if ok=False)
+        """
+        if self.shipping_query:
+            return await self.client.answer_shipping_query(
+                self.shipping_query.id,
+                ok,
+                shipping_options,
+                error_message
+            )
+        return None
+
+    async def answer_pre_checkout_query(self, ok: bool, error_message: Optional[str] = None):
+        """
+        Answers a pre-checkout query
+        
+        Args:
+            ok: True if payment can proceed
+            error_message: Error message (required if ok=False)
+        """
+        if self.pre_checkout_query:
+            return await self.client.answer_pre_checkout_query(
+                self.pre_checkout_query.id,
+                ok,
+                error_message
+            )
+        return None
+
+    async def send_invoice(self, title: str, description: str, payload: str, 
+                          provider_token: str, currency: str, prices: list,
+                          **kwargs):
+        """
+        Sends an invoice
+        
+        Args:
+            title: Product name
+            description: Product description
+            payload: Bot-defined invoice payload
+            provider_token: Payments provider token (empty string for XTR/Stars)
+            currency: ISO 4217 currency code (e.g., 'USD', 'PLN', 'XTR')
+            prices: List of price breakdowns
+            **kwargs: Additional arguments (need_email, need_name, etc.)
+        """
+        if self.chat_id:
+            # Convert LabeledPrice objects to dicts if needed
+            formatted_prices = []
+            for price in prices:
+                if hasattr(price, 'to_dict'):
+                    formatted_prices.append(price.to_dict())
+                else:
+                    formatted_prices.append(price)
+            
+            return await self.client.send_invoice(
+                chat_id=self.chat_id,
+                title=title,
+                description=description,
+                payload=payload,
+                provider_token=provider_token,
+                currency=currency,
+                prices=formatted_prices,
+                **kwargs
+            )
+        return None

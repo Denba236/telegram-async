@@ -20,6 +20,9 @@ class ReplyKeyboardButton:
             request_location: bool = False,
             request_poll: Optional[Dict] = None,
             web_app: Optional[Dict] = None,
+            request_user: Optional[Dict] = None,
+            request_chat: Optional[Dict] = None,
+            request_managed_bot: Optional[Dict] = None,  # API 9.6
             icon_custom_emoji_id: Optional[str] = None,  # API 9.5 - custom emoji icon for BottomButton
             style: Optional[Literal["primary", "success", "danger"]] = None  # API 9.4+ - цвет кнопки
     ):
@@ -28,6 +31,9 @@ class ReplyKeyboardButton:
         self.request_location = request_location
         self.request_poll = request_poll
         self.web_app = web_app
+        self.request_user = request_user
+        self.request_chat = request_chat
+        self.request_managed_bot = request_managed_bot  # API 9.6
         self.icon_custom_emoji_id = icon_custom_emoji_id
         self.style = style  # Стиль (цвет) кнопки: primary/success/danger
 
@@ -41,6 +47,12 @@ class ReplyKeyboardButton:
             data['request_poll'] = self.request_poll
         if self.web_app:
             data['web_app'] = self.web_app
+        if self.request_user:
+            data['request_user'] = self.request_user
+        if self.request_chat:
+            data['request_chat'] = self.request_chat
+        if self.request_managed_bot:
+            data['request_managed_bot'] = self.request_managed_bot  # API 9.6
         if self.icon_custom_emoji_id:
             data['icon_custom_emoji_id'] = self.icon_custom_emoji_id  # API 9.5
         if self.style:

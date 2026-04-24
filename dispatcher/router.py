@@ -94,6 +94,112 @@ class Router:
             raise ValueError("Cannot include router into itself")
         self.sub_routers.append(router)
 
+    def shipping_query(self, *filters, priority: int = 0):
+        """
+        Decorator for shipping query handlers
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
+        def decorator(func: Callable):
+            self.handlers['shipping_query'].append({
+                'func': func,
+                'filters': filters,
+                'priority': priority
+            })
+            return func
+        return decorator
+
+    def pre_checkout_query(self, *filters, priority: int = 0):
+        """
+        Decorator for pre-checkout query handlers (payment validation)
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
+        def decorator(func: Callable):
+            self.handlers['pre_checkout_query'].append({
+                'func': func,
+                'filters': filters,
+                'priority': priority
+            })
+            return func
+        return decorator
+
+    def successful_payment(self, *filters, priority: int = 0):
+        """
+        Decorator for successful payment handlers
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
+        def decorator(func: Callable):
+            # Payment handlers work with message updates
+            async def payment_filter(message: Message) -> bool:
+                return hasattr(message, 'successful_payment') and message.successful_payment is not None
+
+            self.handlers['message'].append({
+                'func': func,
+                'filters': (payment_filter,) + filters,
+                'priority': priority
+            })
+            return func
+        return decorator
+
+    def poll(self, *filters, priority: int = 0):
+        """
+        Decorator for poll handlers
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
+        def decorator(func: Callable):
+            self.handlers['poll'].append({
+                'func': func,
+                'filters': filters,
+                'priority': priority
+            })
+            return func
+        return decorator
+
+    def poll_answer(self, *filters, priority: int = 0):
+        """
+        Decorator for poll answer handlers
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
+        def decorator(func: Callable):
+            self.handlers['poll_answer'].append({
+                'func': func,
+                'filters': filters,
+                'priority': priority
+            })
+            return func
+        return decorator
+
+    def chat_join_request(self, *filters, priority: int = 0):
+        """
+        Decorator for chat join request handlers
+        
+        Args:
+            *filters: Filter functions
+            priority: Handler priority (higher = executed first, default 0)
+        """
+        def decorator(func: Callable):
+            self.handlers['chat_join_request'].append({
+                'func': func,
+                'filters': filters,
+                'priority': priority
+            })
+            return func
+        return decorator
+
     async def _check_filters(self, filters: tuple, event: Any, ctx: Context) -> bool:
         """Check if the event passes all filters"""
         current_state = await ctx.fsm.get_state() if ctx.fsm else None
@@ -137,6 +243,39 @@ class Router:
         elif update.edited_message:
             update_type = 'edited_message'
             event = update.edited_message
+        elif update.channel_post:
+            update_type = 'channel_post'
+            event = update.channel_post
+        elif update.edited_channel_post:
+            update_type = 'edited_channel_post'
+            event = update.edited_channel_post
+        elif update.inline_query:
+            update_type = 'inline_query'
+            event = update.inline_query
+        elif update.chosen_inline_result:
+            update_type = 'chosen_inline_result'
+            event = update.chosen_inline_result
+        elif update.shipping_query:
+            update_type = 'shipping_query'
+            event = update.shipping_query
+        elif update.pre_checkout_query:
+            update_type = 'pre_checkout_query'
+            event = update.pre_checkout_query
+        elif update.poll:
+            update_type = 'poll'
+            event = update.poll
+        elif update.poll_answer:
+            update_type = 'poll_answer'
+            event = update.poll_answer
+        elif update.my_chat_member:
+            update_type = 'my_chat_member'
+            event = update.my_chat_member
+        elif update.chat_member:
+            update_type = 'chat_member'
+            event = update.chat_member
+        elif update.chat_join_request:
+            update_type = 'chat_join_request'
+            event = update.chat_join_request
         # ... other types can be added here
 
         if not update_type or update_type not in self.handlers:

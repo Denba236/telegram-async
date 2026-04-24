@@ -5,7 +5,7 @@ System filtrów dla telegram_async z obsługą operatorów logicznych
 from abc import ABC, abstractmethod
 from typing import Any, Union, Optional, Callable, List
 import re
-from ..types import Message, CallbackQuery, InlineQuery, Update
+from ..telegram_types import Message, CallbackQuery, InlineQuery, Update
 
 
 class Filter(ABC):
