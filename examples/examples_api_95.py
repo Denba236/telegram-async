@@ -15,7 +15,7 @@ from telegram_async.dispatcher.router import Router
 from telegram_async.keyboards import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram_async.keyboards import ReplyKeyboardMarkup, ReplyKeyboardButton
 
-bot = Bot("8639694173:AAEa7JygJPr8WpUkXxY_E8NgGvVFrhIvhvo")
+bot = Bot("")
 dp = Dispatcher()
 router = Router(name="api95_examples")
 
